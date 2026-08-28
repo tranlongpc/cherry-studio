@@ -8,6 +8,12 @@ import { PopupHost } from '@renderer/components/PopupHost'
 import { ThemeProvider } from '@renderer/components/ThemeProvider'
 import ToastHost from '@renderer/components/ToastHost'
 import { WindowFatalFallback } from '@renderer/components/WindowFatalFallback'
+import { useMainWindowNavigation } from '@renderer/hooks/tab'
+
+function WebWindowRuntime(): null {
+  useMainWindowNavigation()
+  return null
+}
 
 function WebApp(): React.ReactElement {
   return (
@@ -18,6 +24,7 @@ function WebApp(): React.ReactElement {
             <CommandProvider>
               <TabsProvider>
                 <AppShell />
+                <WebWindowRuntime />
                 <ConversationNotificationRuntime />
                 <PopupHost />
                 <ToastHost />

@@ -7,6 +7,8 @@ import type {
   UnifiedPreferenceType
 } from '@shared/data/preference/preferenceTypes'
 import { ThemeMode } from '@shared/data/preference/preferenceTypes'
+import type { FileMetadata } from '@shared/data/types/legacyFile'
+import type { CreateInternalEntryIpcParams, GetPhysicalPathIpcParams } from '@shared/types/file'
 
 const TOKEN_STORAGE_KEY = 'cherry-web-token'
 
@@ -110,6 +112,62 @@ async function preferenceRequest<T>(body: unknown): Promise<T> {
   return response.data
 }
 
+async function uploadBrowserFiles(files: File[]): Promise<FileMetadata[]> {
+  const token = getWebToken()
+  if (!token) throw new Error('Sign in to Cherry Studio Web first')
+  return Promise.all(
+    files.map(async (file) => {
+      const response = await fetch('/web/api/files', {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${token}`,
+          'content-type': 'application/octet-stream',
+          'x-file-name': encodeURIComponent(file.name)
+        },
+        body: file
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload?.error ?? `Upload failed with status ${response.status}`)
+      return payload as FileMetadata
+    })
+  )
+}
+
+function selectBrowserFiles(options?: { filters?: Array<{ extensions: string[] }>; properties?: string[] }) {
+  return new Promise<FileMetadata[] | null>((resolve, reject) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.multiple = options?.properties?.includes('multiSelections') ?? false
+    const extensions = options?.filters?.flatMap((filter) => filter.extensions) ?? []
+    if (extensions.length > 0 && !extensions.includes('*')) {
+      input.accept = extensions.map((ext) => (ext.startsWith('.') ? ext : `.${ext}`)).join(',')
+    }
+    input.style.display = 'none'
+    document.body.append(input)
+
+    let settled = false
+    const finish = (value: FileMetadata[] | null) => {
+      if (settled) return
+      settled = true
+      input.remove()
+      resolve(value)
+    }
+    input.addEventListener('change', () => {
+      const files = Array.from(input.files ?? [])
+      if (files.length === 0) {
+        finish(null)
+        return
+      }
+      void uploadBrowserFiles(files)
+        .then(finish)
+        .catch(reject)
+        .finally(() => input.remove())
+    })
+    input.addEventListener('cancel', () => finish(null))
+    input.click()
+  })
+}
+
 function handleEventMessage(raw: string): void {
   const message = JSON.parse(raw)
   if (message.type === 'cache') {
@@ -206,6 +264,13 @@ export function installWebBridge(): void {
       request: (dataRequest: DataRequest): Promise<DataResponse> => request('/web/api/data', dataRequest),
       onDataChanged: noEvents
     },
+    file: {
+      select: selectBrowserFiles,
+      createInternalEntry: (params: CreateInternalEntryIpcParams) =>
+        request('/web/api/file', { action: 'createInternalEntry', params }),
+      getPhysicalPath: ({ id }: GetPhysicalPathIpcParams) =>
+        request<{ data: string }>('/web/api/file', { action: 'getPhysicalPath', id }).then(({ data }) => data)
+    },
     ipcApi: {
       request: (route: string, input: any) => {
         if (route === 'system.get_native_theme') {
@@ -217,6 +282,9 @@ export function installWebBridge(): void {
         if (route === 'system.shell.open_website') {
           window.open(input, '_blank', 'noopener,noreferrer')
           return Promise.resolve(undefined)
+        }
+        if (route === 'navigation.protocol_dispatch_ready' || route === 'navigation.ack_open_route') {
+          return Promise.resolve({ ok: true, data: undefined })
         }
         if (route === 'ai.stream.open') {
           return ensureEventStream()

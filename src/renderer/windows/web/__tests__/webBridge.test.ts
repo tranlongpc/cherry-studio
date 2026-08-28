@@ -43,6 +43,15 @@ describe('webBridge', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('handles main-window navigation lifecycle locally in the browser', async () => {
+    const fetchSpy = vi.spyOn(window, 'fetch')
+
+    await expect(ipcApi.request('navigation.protocol_dispatch_ready')).resolves.toBeUndefined()
+    await expect(ipcApi.request('navigation.ack_open_route', { requestId: 1 })).resolves.toBeUndefined()
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   it('stores a validated key only in session storage', async () => {
     await authenticate()
     expect(sessionStorage.getItem('cherry-web-token')).toBe('cs-sk-valid')
@@ -119,5 +128,60 @@ describe('webBridge', () => {
       expect.stringContaining('/web/api/events'),
       '/web/api/stream/open'
     ])
+  })
+
+  it('opens a browser picker and uploads the selected file', async () => {
+    await authenticate()
+    const click = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(function (this: HTMLInputElement) {
+      Object.defineProperty(this, 'files', {
+        configurable: true,
+        value: [new File(['hello'], 'notes.txt', { type: 'text/plain' })]
+      })
+      this.dispatchEvent(new Event('change'))
+    })
+    vi.spyOn(window, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          id: 'file-1',
+          name: 'notes.txt',
+          origin_name: 'notes.txt',
+          path: '/mock/notes.txt',
+          size: 5,
+          ext: '.txt',
+          type: 'text',
+          created_at: '2026-01-01T00:00:00.000Z',
+          count: 1
+        }),
+        { status: 200 }
+      )
+    )
+
+    await expect(
+      window.api.file.select({
+        properties: ['openFile', 'multiSelections'],
+        filters: [{ name: 'Files', extensions: ['txt'] }]
+      })
+    ).resolves.toEqual([expect.objectContaining({ name: 'notes.txt', path: '/mock/notes.txt' })])
+    expect(click).toHaveBeenCalledOnce()
+  })
+
+  it('bridges the send-time file entry and physical path operations', async () => {
+    await authenticate()
+    const fetchSpy = vi
+      .spyOn(window, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: '01912345-6789-7abc-8def-0123456789ab' }), { status: 200 })
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: '/mock/Data/Files/copied.txt' }), { status: 200 }))
+
+    const entry = await window.api.file.createInternalEntry({
+      source: 'path',
+      path: '/mock/Data/Files/upload.txt' as never,
+      cleanupPolicy: 'delete_when_unreferenced'
+    })
+    const path = await window.api.file.getPhysicalPath({ id: entry.id as never })
+
+    expect(path).toBe('/mock/Data/Files/copied.txt')
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
 })

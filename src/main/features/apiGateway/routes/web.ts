@@ -8,6 +8,11 @@ import type { AiStreamOpenRequest } from '@shared/ai/transport'
 import type { DataRequest } from '@shared/data/api/types'
 import type { CacheSyncMessage } from '@shared/data/cache/cacheTypes'
 import type { UnifiedPreferenceKeyType, UnifiedPreferenceType } from '@shared/data/preference/preferenceTypes'
+import { FileEntryIdSchema } from '@shared/data/types/file'
+import type { FileMetadata } from '@shared/data/types/legacyFile'
+import { createInternalEntryInputSchema } from '@shared/ipc/schemas/file'
+import { FILE_TYPE, type FileType } from '@shared/types/file'
+import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/utils/file'
 import { Elysia } from 'elysia'
 
 import { authorizeApiRequest } from '../middleware/auth'
@@ -22,6 +27,46 @@ const CONTENT_TYPES: Record<string, string> = {
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
   '.woff2': 'font/woff2'
+}
+
+const MAX_WEB_UPLOAD_BYTES = 100 * 1024 * 1024
+
+function fileTypeForExtension(ext: string): FileType {
+  const dotted = ext ? `.${ext.replace(/^\./, '').toLowerCase()}` : ''
+  if (imageExts.includes(dotted)) return FILE_TYPE.IMAGE
+  if (videoExts.includes(dotted)) return FILE_TYPE.VIDEO
+  if (audioExts.includes(dotted)) return FILE_TYPE.AUDIO
+  if (textExts.includes(dotted)) return FILE_TYPE.TEXT
+  if (documentExts.includes(dotted)) return FILE_TYPE.DOCUMENT
+  return FILE_TYPE.OTHER
+}
+
+async function storeWebUpload(filename: string, bytes: Uint8Array): Promise<FileMetadata> {
+  if (bytes.byteLength <= 0 || bytes.byteLength > MAX_WEB_UPLOAD_BYTES) {
+    throw new Error(`File size must be between 1 byte and ${MAX_WEB_UPLOAD_BYTES} bytes`)
+  }
+  const ext = extname(filename).slice(1).toLowerCase()
+  const name = ext ? filename.slice(0, -(ext.length + 1)) : filename
+  const manager = application.get('FileManager')
+  const entry = await manager.createInternalEntry({
+    source: 'bytes',
+    data: bytes,
+    name,
+    ext: ext || null,
+    cleanupPolicy: 'delete_when_unreferenced'
+  })
+  const path = manager.getPhysicalPath(entry.id)
+  return {
+    id: entry.id,
+    name: filename,
+    origin_name: filename,
+    path,
+    size: bytes.byteLength,
+    ext: ext ? `.${ext}` : '.',
+    type: fileTypeForExtension(ext),
+    created_at: new Date(entry.createdAt).toISOString(),
+    count: 1
+  }
 }
 
 const REMOTE_IPC_ROUTES = [
@@ -46,6 +91,7 @@ const REMOTE_IPC_ROUTES = [
   'ai.stream.abort',
   'ai.text.generate',
   'ai.tool.get_result',
+  'file.get_metadata',
   'system.get_ip_country'
 ] as const
 
@@ -77,7 +123,10 @@ async function staticResponse(relativePath: string): Promise<Response> {
   try {
     const content = await readFile(file)
     return new Response(content, {
-      headers: { 'content-type': CONTENT_TYPES[extname(file)] ?? 'application/octet-stream' }
+      headers: {
+        'cache-control': extname(file) === '.html' ? 'no-store' : 'public, max-age=31536000, immutable',
+        'content-type': CONTENT_TYPES[extname(file)] ?? 'application/octet-stream'
+      }
     })
   } catch {
     return new Response('Not found', { status: 404 })
@@ -90,6 +139,8 @@ type PreferenceRequest =
   | { action: 'getMultipleRaw'; keys: UnifiedPreferenceKeyType[] }
   | { action: 'setMultiple'; updates: Partial<UnifiedPreferenceType> }
   | { action: 'getAll' }
+
+type FileRequest = { action: 'createInternalEntry'; params: unknown } | { action: 'getPhysicalPath'; id: string }
 
 interface WebEventClient {
   controller: ReadableStreamDefaultController<Uint8Array>
@@ -213,6 +264,39 @@ export const webRoutes = new Elysia()
         .get('DataApiService')
         .getApiServer()
         .handleRequest(body as DataRequest)
+    },
+    { detail: { hide: true } }
+  )
+  .post(
+    '/web/api/files',
+    async ({ body, headers, set }) => {
+      const failure = authorize(headers, set)
+      if (failure) return failure
+      const encodedName = headers['x-file-name']
+      if (!encodedName) {
+        set.status = 400
+        return { error: 'Missing file name' }
+      }
+      const bytes = body instanceof ArrayBuffer ? new Uint8Array(body) : new Uint8Array(body as Uint8Array)
+      return storeWebUpload(decodeURIComponent(encodedName), bytes)
+    },
+    { detail: { hide: true } }
+  )
+  .post(
+    '/web/api/file',
+    async ({ body, headers, set }) => {
+      const failure = authorize(headers, set)
+      if (failure) return failure
+      const request = body as FileRequest
+      const manager = application.get('FileManager')
+      if (request.action === 'createInternalEntry') {
+        return manager.createInternalEntry(createInternalEntryInputSchema.parse(request.params))
+      }
+      if (request.action === 'getPhysicalPath') {
+        return { data: manager.getPhysicalPath(FileEntryIdSchema.parse(request.id)) }
+      }
+      set.status = 400
+      return { error: 'Unknown file action' }
     },
     { detail: { hide: true } }
   )

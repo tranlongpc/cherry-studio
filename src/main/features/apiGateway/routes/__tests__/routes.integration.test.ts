@@ -17,6 +17,8 @@ const {
   mockPreferenceSet,
   mockDataApiRequest,
   mockIpcApiRequest,
+  mockCreateInternalEntry,
+  mockGetPhysicalPath,
   mockProcessMessage,
   mockGetModels,
   mockIsInternalRequestToken
@@ -26,6 +28,11 @@ const {
   mockPreferenceSet: vi.fn(async () => {}),
   mockDataApiRequest: vi.fn(async (request: unknown) => ({ id: 'request-1', status: 200, data: request })),
   mockIpcApiRequest: vi.fn(async (route: string, input: unknown) => ({ ok: true, data: { route, input } })),
+  mockCreateInternalEntry: vi.fn(async () => ({
+    id: '01912345-6789-7abc-8def-0123456789ab',
+    createdAt: 1_700_000_000_000
+  })),
+  mockGetPhysicalPath: vi.fn(() => '/mock/Data/Files/upload.txt'),
   mockProcessMessage: vi.fn<(config: unknown) => Promise<Response>>(
     async () =>
       new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
@@ -40,6 +47,7 @@ vi.mock('@application', async () => {
     PreferenceService: { get: mockPreferenceGet, getAll: mockPreferenceGetAll, set: mockPreferenceSet },
     DataApiService: { getApiServer: () => ({ handleRequest: mockDataApiRequest }) },
     IpcApiService: { requestFromRemote: mockIpcApiRequest },
+    FileManager: { createInternalEntry: mockCreateInternalEntry, getPhysicalPath: mockGetPhysicalPath },
     ApiGatewayService: { isInternalRequestToken: mockIsInternalRequestToken }
   }
   return mockApplicationFactory(overrides)
@@ -187,6 +195,64 @@ describe('API gateway routes (integration)', () => {
       })
       expect(writeResult.status).toBe(200)
       expect(mockPreferenceSet).toHaveBeenCalledWith('app.language', 'vi-VN')
+    })
+
+    it('stores uploaded browser files in Cherry-managed storage', async () => {
+      const response = await app.handle(
+        new Request('http://localhost/web/api/files', {
+          method: 'POST',
+          headers: {
+            'x-api-key': 'test-key',
+            'content-type': 'application/octet-stream',
+            'x-file-name': encodeURIComponent('notes.txt')
+          },
+          body: new Uint8Array([104, 101, 108, 108, 111])
+        })
+      )
+      const body = await response.json()
+
+      expect(response.status, JSON.stringify(body)).toBe(200)
+      expect(mockCreateInternalEntry).toHaveBeenCalledWith({
+        source: 'bytes',
+        data: new Uint8Array([104, 101, 108, 108, 111]),
+        name: 'notes',
+        ext: 'txt',
+        cleanupPolicy: 'delete_when_unreferenced'
+      })
+      expect(body).toEqual(
+        expect.objectContaining({ name: 'notes.txt', path: '/mock/Data/Files/upload.txt', ext: '.txt', type: 'text' })
+      )
+    })
+
+    it('bridges composer file entry creation and physical path lookup', async () => {
+      mockCreateInternalEntry.mockResolvedValueOnce({
+        id: '01912345-6789-7abc-8def-0123456789ab',
+        createdAt: 1_700_000_000_000
+      })
+      const create = await read(
+        await post(app, '/web/api/file', {
+          action: 'createInternalEntry',
+          params: {
+            source: 'path',
+            path: '/mock/Data/Files/upload.txt',
+            cleanupPolicy: 'delete_when_unreferenced'
+          }
+        })
+      )
+      const physical = await read(
+        await post(app, '/web/api/file', {
+          action: 'getPhysicalPath',
+          id: '01912345-6789-7abc-8def-0123456789ab'
+        })
+      )
+
+      expect(create.status).toBe(200)
+      expect(mockCreateInternalEntry).toHaveBeenLastCalledWith({
+        source: 'path',
+        path: '/mock/Data/Files/upload.txt',
+        cleanupPolicy: 'delete_when_unreferenced'
+      })
+      expect(physical.body).toEqual({ data: '/mock/Data/Files/upload.txt' })
     })
   })
 
