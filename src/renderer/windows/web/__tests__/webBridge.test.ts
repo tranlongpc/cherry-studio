@@ -184,4 +184,74 @@ describe('webBridge', () => {
     expect(path).toBe('/mock/Data/Files/copied.txt')
     expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
+
+  it('subscribes a translation stream before opening it on main', async () => {
+    await authenticate()
+    const events = eventStreamResponse()
+    const fetchSpy = vi
+      .spyOn(window, 'fetch')
+      .mockResolvedValueOnce(events.response)
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'attached', bufferedChunks: [] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ streamId: 'translate:1' }), { status: 200 }))
+
+    await expect(
+      ipcApi.request('translate.open', { streamId: 'translate:1', text: 'hello', targetLangCode: 'vi-VN' })
+    ).resolves.toEqual({ streamId: 'translate:1' })
+
+    expect(fetchSpy.mock.calls.map(([url]) => String(url))).toEqual([
+      expect.stringContaining('/web/api/events'),
+      '/web/api/stream/subscription',
+      '/web/api/translate/open'
+    ])
+  })
+
+  it('bridges the constrained Notes operations used by Save to Notes', async () => {
+    await authenticate()
+    const fetchSpy = vi
+      .spyOn(window, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ safeName: 'Saved note', exists: false }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }))
+
+    await expect(window.api.file.checkFileName('/mock/feature.notes.data', 'Saved note', true)).resolves.toEqual({
+      safeName: 'Saved note',
+      exists: false
+    })
+    await expect(window.api.file.write('/mock/feature.notes.data/Saved note.md', '# Saved')).resolves.toEqual({
+      success: true
+    })
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+  })
+
+  it('downloads saved text files in the browser without calling the server', async () => {
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn() })
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() })
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:download')
+    const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const fetchSpy = vi.spyOn(window, 'fetch')
+
+    await expect(window.api.file.save('message.md', '# Hello')).resolves.toBe('message.md')
+    await Promise.resolve()
+
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob))
+    expect(click).toHaveBeenCalledOnce()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:download')
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('reads only managed files through the web file endpoint', async () => {
+    await authenticate()
+    const fetchSpy = vi
+      .spyOn(window, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: '# Note' }), { status: 200 }))
+
+    await expect(window.api.file.readExternal('/mock/feature.notes.data/note.md')).resolves.toBe('# Note')
+    expect(fetchSpy).toHaveBeenCalledOnce()
+  })
+
+  it('returns controlled fallbacks for desktop-only file dialogs', async () => {
+    await expect(window.api.file.selectFolder()).resolves.toBeNull()
+    await expect(window.api.file.open()).resolves.toBeNull()
+    await expect(window.api.file.openPath('/tmp/file')).resolves.toBeUndefined()
+  })
 })

@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto'
-import { readFile } from 'node:fs/promises'
-import { extname, resolve, sep } from 'node:path'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { basename, dirname, extname, join, resolve, sep } from 'node:path'
 
 import { application } from '@application'
 import { AiStreamAdmissionError, type StreamListener } from '@main/ai/streamManager'
+import { translateService } from '@main/services/translate/translateService'
 import type { AiStreamOpenRequest } from '@shared/ai/transport'
 import type { DataRequest } from '@shared/data/api/types'
 import type { CacheSyncMessage } from '@shared/data/cache/cacheTypes'
@@ -91,6 +92,7 @@ const REMOTE_IPC_ROUTES = [
   'ai.stream.abort',
   'ai.text.generate',
   'ai.tool.get_result',
+  'app.get_info',
   'file.get_metadata',
   'system.get_ip_country'
 ] as const
@@ -140,7 +142,40 @@ type PreferenceRequest =
   | { action: 'setMultiple'; updates: Partial<UnifiedPreferenceType> }
   | { action: 'getAll' }
 
-type FileRequest = { action: 'createInternalEntry'; params: unknown } | { action: 'getPhysicalPath'; id: string }
+type FileRequest =
+  | { action: 'createInternalEntry'; params: unknown }
+  | { action: 'getPhysicalPath'; id: string }
+  | { action: 'notesCheckName'; dirPath: string; fileName: string; isFile: boolean }
+  | { action: 'notesWrite'; filePath: string; content: string }
+  | { action: 'notesMkdir'; dirPath: string }
+  | { action: 'notesValidateDirectory'; dirPath: string }
+  | { action: 'readManaged'; filePath: string; encoding?: boolean }
+
+function managedReadPath(candidate: string): string {
+  const target = resolve(candidate)
+  const roots = [application.getPath('feature.files.data'), application.getPath('feature.notes.data')].map((path) =>
+    resolve(path)
+  )
+  if (!roots.some((root) => target === root || target.startsWith(`${root}${sep}`))) {
+    throw new Error('File path is outside managed storage')
+  }
+  return target
+}
+
+function notesPath(candidate: string): string {
+  const root = resolve(application.getPath('feature.notes.data'))
+  const target = resolve(candidate)
+  if (target !== root && !target.startsWith(`${root}${sep}`)) throw new Error('Notes path is outside managed storage')
+  return target
+}
+
+function safeNoteName(value: string): string {
+  const safe = basename(value)
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+    .trim()
+  if (!safe || safe === '.' || safe === '..') throw new Error('Invalid note name')
+  return safe.replace(/\.md$/i, '')
+}
 
 interface WebEventClient {
   controller: ReadableStreamDefaultController<Uint8Array>
@@ -295,6 +330,36 @@ export const webRoutes = new Elysia()
       if (request.action === 'getPhysicalPath') {
         return { data: manager.getPhysicalPath(FileEntryIdSchema.parse(request.id)) }
       }
+      if (request.action === 'notesCheckName') {
+        const dir = notesPath(request.dirPath)
+        const safeName = safeNoteName(request.fileName)
+        const target = join(dir, request.isFile ? `${safeName}.md` : safeName)
+        const exists = await stat(target)
+          .then(() => true)
+          .catch(() => false)
+        return { safeName, exists }
+      }
+      if (request.action === 'notesWrite') {
+        const target = notesPath(request.filePath)
+        await mkdir(dirname(target), { recursive: true })
+        await writeFile(target, request.content, 'utf8')
+        return { success: true }
+      }
+      if (request.action === 'notesMkdir') {
+        await mkdir(notesPath(request.dirPath), { recursive: true })
+        return { success: true }
+      }
+      if (request.action === 'notesValidateDirectory') {
+        try {
+          return (await stat(notesPath(request.dirPath))).isDirectory()
+        } catch {
+          return false
+        }
+      }
+      if (request.action === 'readManaged') {
+        const content = await readFile(managedReadPath(request.filePath))
+        return request.encoding ? { data: content.toString('utf8') } : { data: Array.from(content) }
+      }
       set.status = 400
       return { error: 'Unknown file action' }
     },
@@ -328,6 +393,21 @@ export const webRoutes = new Elysia()
         if (error instanceof AiStreamAdmissionError) return { mode: 'blocked', reason: error.reason }
         throw error
       }
+    },
+    { detail: { hide: true } }
+  )
+  .post(
+    '/web/api/translate/open',
+    ({ body, headers, set }) => {
+      const failure = authorize(headers, set)
+      if (failure) return failure
+      const request = body as { clientId: string; streamId: string; text: string; targetLangCode: string }
+      const listener = webEventClients.get(request.clientId)?.listeners.get(request.streamId)
+      if (!listener) {
+        set.status = 409
+        return { error: 'Translation stream is not subscribed' }
+      }
+      return translateService.openWithListener(listener, request as never)
     },
     { detail: { hide: true } }
   )

@@ -168,6 +168,31 @@ function selectBrowserFiles(options?: { filters?: Array<{ extensions: string[] }
   })
 }
 
+function downloadBrowserFile(filename: string, content: string | ArrayBufferView | Blob): Promise<string> {
+  const blob =
+    content instanceof Blob
+      ? content
+      : typeof content === 'string'
+        ? new Blob([content], { type: 'text/plain;charset=utf-8' })
+        : new Blob([new Uint8Array(content.buffer, content.byteOffset, content.byteLength).slice().buffer])
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename.split(/[\\/]/).pop() || 'download'
+  anchor.style.display = 'none'
+  document.body.append(anchor)
+  anchor.click()
+  anchor.remove()
+  queueMicrotask(() => URL.revokeObjectURL(url))
+  return Promise.resolve(anchor.download)
+}
+
+async function downloadBrowserImage(filename: string, data: string): Promise<boolean> {
+  const response = await fetch(data)
+  await downloadBrowserFile(filename, await response.blob())
+  return true
+}
+
 function handleEventMessage(raw: string): void {
   const message = JSON.parse(raw)
   if (message.type === 'cache') {
@@ -177,6 +202,9 @@ function handleEventMessage(raw: string): void {
   if (message.type === 'event') {
     if (message.data.event.startsWith('ai.stream.')) publishTopicStatus(message.data.event, message.data.payload)
     eventListeners.get(message.data.event)?.forEach((listener) => listener(message.data.payload))
+    if (message.data.payload?.isTopicDone && String(message.data.payload.topicId).startsWith('translate:')) {
+      void unsubscribeTopic(message.data.payload.topicId)
+    }
   }
 }
 
@@ -269,7 +297,35 @@ export function installWebBridge(): void {
       createInternalEntry: (params: CreateInternalEntryIpcParams) =>
         request('/web/api/file', { action: 'createInternalEntry', params }),
       getPhysicalPath: ({ id }: GetPhysicalPathIpcParams) =>
-        request<{ data: string }>('/web/api/file', { action: 'getPhysicalPath', id }).then(({ data }) => data)
+        request<{ data: string }>('/web/api/file', { action: 'getPhysicalPath', id }).then(({ data }) => data),
+      checkFileName: (dirPath: string, fileName: string, isFile: boolean) =>
+        request('/web/api/file', { action: 'notesCheckName', dirPath, fileName, isFile }),
+      write: (filePath: string, content: string) =>
+        request('/web/api/file', { action: 'notesWrite', filePath, content }),
+      mkdir: (dirPath: string) => request('/web/api/file', { action: 'notesMkdir', dirPath }),
+      validateNotesDirectory: (dirPath: string) =>
+        request('/web/api/file', { action: 'notesValidateDirectory', dirPath }),
+      save: (filename: string, content: string | ArrayBufferView) => downloadBrowserFile(filename, content),
+      saveImage: (filename: string, data: string) => downloadBrowserImage(filename, data),
+      readExternal: (filePath: string) =>
+        request<{ data: string }>('/web/api/file', { action: 'readManaged', filePath, encoding: true }).then(
+          ({ data }) => data
+        ),
+      selectFolder: async () => null,
+      open: async () => null,
+      openPath: async () => {},
+      showInFolder: async () => {},
+      getPathForFile: () => ''
+    },
+    fs: {
+      readText: (filePath: string) =>
+        request<{ data: string }>('/web/api/file', { action: 'readManaged', filePath, encoding: true }).then(
+          ({ data }) => data
+        ),
+      read: (filePath: string) =>
+        request<{ data: number[] }>('/web/api/file', { action: 'readManaged', filePath }).then(
+          ({ data }) => new Uint8Array(data)
+        )
     },
     ipcApi: {
       request: (route: string, input: any) => {
@@ -285,6 +341,11 @@ export function installWebBridge(): void {
         }
         if (route === 'navigation.protocol_dispatch_ready' || route === 'navigation.ack_open_route') {
           return Promise.resolve({ ok: true, data: undefined })
+        }
+        if (route === 'translate.open') {
+          return subscribeTopic(input.streamId)
+            .then(() => request('/web/api/translate/open', { clientId: eventClientId, ...input }))
+            .then((data) => ({ ok: true, data }))
         }
         if (route === 'ai.stream.open') {
           return ensureEventStream()
@@ -332,6 +393,14 @@ export function installWebBridge(): void {
     storageMonitor: {
       getHealth: unsupported('storageMonitor.getHealth'),
       onHealthChange: noEvents
+    },
+    application: {
+      preventQuit: async () => 'web-client',
+      allowQuit: async () => {},
+      relaunch: async () => window.location.reload()
+    },
+    system: {
+      getHostname: async () => window.location.hostname
     }
   }
 

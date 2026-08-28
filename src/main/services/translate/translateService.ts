@@ -96,6 +96,10 @@ export class TranslateService {
    * start flowing.
    */
   open(sender: Electron.WebContents, req: TranslateOpenRequest): TranslateOpenResult {
+    return this.openWithListener(new WebContentsListener(sender, req.streamId), req)
+  }
+
+  openWithListener(listener: StreamListener, req: TranslateOpenRequest): TranslateOpenResult {
     if (!req.streamId.startsWith(TRANSLATE_STREAM_PREFIX)) {
       throw new Error(`streamId must be prefixed '${TRANSLATE_STREAM_PREFIX}' (got '${req.streamId}')`)
     }
@@ -110,7 +114,6 @@ export class TranslateService {
     // TranslationBackend has no markTerminalError, so without this a post-stream persist
     // failure would leave the renderer on a `success` it already received and silently lose
     // the translation on reload.
-    const wcListener = new WebContentsListener(sender, req.streamId)
     if (req.messageId) {
       listeners.push(
         new PersistenceListener({
@@ -120,11 +123,11 @@ export class TranslateService {
             targetLanguage: req.targetLangCode,
             sourceLanguage: req.sourceLangCode
           }),
-          onPersistFailed: (error) => wcListener.onError({ error, status: 'error', isTopicDone: true })
+          onPersistFailed: (error) => listener.onError({ error, status: 'error', isTopicDone: true })
         })
       )
     }
-    listeners.push(wcListener)
+    listeners.push(listener)
 
     const streamManager = application.get('AiStreamManager')
     streamManager.streamPrompt({

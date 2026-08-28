@@ -19,6 +19,7 @@ const {
   mockIpcApiRequest,
   mockCreateInternalEntry,
   mockGetPhysicalPath,
+  mockTranslateOpen,
   mockProcessMessage,
   mockGetModels,
   mockIsInternalRequestToken
@@ -33,6 +34,7 @@ const {
     createdAt: 1_700_000_000_000
   })),
   mockGetPhysicalPath: vi.fn(() => '/mock/Data/Files/upload.txt'),
+  mockTranslateOpen: vi.fn(() => ({ streamId: 'translate:1' })),
   mockProcessMessage: vi.fn<(config: unknown) => Promise<Response>>(
     async () =>
       new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
@@ -57,6 +59,10 @@ vi.mock('@logger', () => ({
   loggerService: {
     withContext: vi.fn(() => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() }))
   }
+}))
+
+vi.mock('@main/services/translate/translateService', () => ({
+  translateService: { openWithListener: mockTranslateOpen }
 }))
 
 // Route `detail.description` fields hold i18n *keys*; openapiDocs.ts resolves them
@@ -253,6 +259,24 @@ describe('API gateway routes (integration)', () => {
         cleanupPolicy: 'delete_when_unreferenced'
       })
       expect(physical.body).toEqual({ data: '/mock/Data/Files/upload.txt' })
+    })
+
+    it('rejects Notes writes outside Cherry-managed Notes storage', async () => {
+      const response = await post(app, '/web/api/file', {
+        action: 'notesWrite',
+        filePath: '/tmp/outside.md',
+        content: 'blocked'
+      })
+      expect(response.status).toBe(500)
+    })
+
+    it('rejects managed file reads outside Files and Notes storage', async () => {
+      const response = await post(app, '/web/api/file', {
+        action: 'readManaged',
+        filePath: '/etc/passwd',
+        encoding: true
+      })
+      expect(response.status).toBe(500)
     })
   })
 
