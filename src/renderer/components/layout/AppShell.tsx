@@ -5,7 +5,7 @@ import useMacTransparentWindow from '@renderer/hooks/useMacTransparentWindow'
 import { useNativeFullscreen } from '@renderer/hooks/useNativeFullscreen'
 import { ipcApi } from '@renderer/ipc'
 import { miniAppIdFromTabUrl } from '@renderer/utils/miniAppKeepAlive'
-import { isMac } from '@renderer/utils/platform'
+import { isMac, isWeb } from '@renderer/utils/platform'
 import { getDefaultRouteTitle, isPageTitledRoute } from '@renderer/utils/routeTitle'
 import { cn } from '@renderer/utils/style'
 import { isSettingsPath } from '@shared/data/types/settingsPath'
@@ -134,7 +134,7 @@ export const AppShell = () => {
   // IPC pair on every tab switch.
   const activeTabAllowsCompactWidth = isCompactMinWidthRoute(activeTab?.url)
   useEffect(() => {
-    if (!activeTabAllowsCompactWidth) return
+    if (!activeTabAllowsCompactWidth || isWeb) return
     void ipcApi.request('window.main.set_minimum_size', { width: SECOND_MIN_WINDOW_WIDTH, height: MIN_WINDOW_HEIGHT })
     return () => {
       void ipcApi.request('window.main.reset_minimum_size')

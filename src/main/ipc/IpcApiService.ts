@@ -82,6 +82,16 @@ export class IpcApiService extends BaseService {
     }
   }
 
+  /** Dispatch an authenticated non-Electron request without granting it a window identity. */
+  async requestFromRemote(route: string, input: unknown): Promise<IpcResult<unknown>> {
+    try {
+      const data = await this.router.dispatch(route, input, { senderId: null })
+      return { ok: true, data }
+    } catch (error) {
+      return { ok: false, error: IpcError.from(error).toJSON() }
+    }
+  }
+
   /** Controlled context: only the caller's WindowId, never the raw WebContents/event. */
   private makeContext(event: IpcMainInvokeEvent): IpcContext {
     return { senderId: application.get('WindowManager').getWindowIdByWebContents(event.sender) ?? null }

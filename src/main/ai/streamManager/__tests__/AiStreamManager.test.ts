@@ -1,5 +1,5 @@
 import { BaseService } from '@main/core/lifecycle/BaseService'
-import { aiStreamAdmissionReasons } from '@shared/ai/transport'
+import { type ActiveExecution, aiStreamAdmissionReasons } from '@shared/ai/transport'
 import { DataApiErrorFactory } from '@shared/data/api/errors'
 import type { UniqueModelId } from '@shared/data/types/model'
 import type { SerializedError } from '@shared/types/error'
@@ -24,20 +24,27 @@ import type {
 class FakeListener implements StreamListener {
   readonly id: string
   readonly terminalPhase?: 'persistence'
+  readonly persistAcrossTurns?: boolean
   chunks: UIMessageChunk[] = []
   /** Second argument of each onChunk call, indexed by chunk position. */
   chunkSources: Array<string | undefined> = []
   doneResults: StreamDoneResult[] = []
   pausedResults: StreamPausedResult[] = []
   errorResults: StreamErrorResult[] = []
+  startedExecutions: ActiveExecution[][] = []
   alive = true
   onDoneImpl?: (result: StreamDoneResult) => void | Promise<void>
   onPausedImpl?: (result: StreamPausedResult) => void | Promise<void>
   onErrorImpl?: (result: StreamErrorResult) => void | Promise<void>
 
-  constructor(id: string, terminalPhase?: 'persistence') {
+  constructor(id: string, terminalPhase?: 'persistence', persistAcrossTurns?: boolean) {
     this.id = id
     this.terminalPhase = terminalPhase
+    this.persistAcrossTurns = persistAcrossTurns
+  }
+
+  onStarted(activeExecutions: ActiveExecution[]): void {
+    this.startedExecutions.push(activeExecutions)
   }
 
   onChunk(chunk: UIMessageChunk, sourceModelId?: string): void {
@@ -1734,6 +1741,90 @@ describe('AiStreamManager', () => {
   // ── grace period ────────────────────────────────────────────────
 
   describe('grace period', () => {
+    it('delivers a desktop-started stream to a remote listener already watching an idle topic', () => {
+      const remote = new FakeListener('web:client:a')
+
+      expect(mgr.attachOrWaitListener(remote, { topicId: 'a' })).toEqual({ status: 'attached', bufferedChunks: [] })
+
+      startSingle(mgr, {
+        topicId: 'a',
+        modelId: 'provider-a::model-a',
+        request: req('a'),
+        listeners: [new FakeListener('wc:desktop:a')]
+      })
+      expect(remote.startedExecutions).toEqual([[expect.objectContaining({ executionId: 'provider-a::model-a' })]])
+      mgr.onChunk('a', 'provider-a::model-a', { type: 'text-delta', id: 'p1', delta: 'from desktop' })
+
+      expect(remote.chunks).toEqual([{ type: 'text-delta', id: 'p1', delta: 'from desktop' }])
+    })
+
+    it('removes a waiting remote listener when its client disconnects', () => {
+      const remote = new FakeListener('web:client:a')
+      mgr.attachOrWaitListener(remote, { topicId: 'a' })
+      mgr.detachListener('a', remote.id)
+
+      startSingle(mgr, {
+        topicId: 'a',
+        modelId: 'provider-a::model-a',
+        request: req('a'),
+        listeners: [new FakeListener('wc:desktop:a')]
+      })
+      mgr.onChunk('a', 'provider-a::model-a', { type: 'text-delta', id: 'p1', delta: 'not delivered' })
+
+      expect(remote.chunks).toEqual([])
+    })
+
+    it('keeps watching across a terminal stream grace period', async () => {
+      startSingle(mgr, {
+        topicId: 'a',
+        modelId: 'provider-a::model-a',
+        request: req('a'),
+        listeners: [new FakeListener('wc:desktop:first')]
+      })
+      await mgr.onExecutionDone('a', 'provider-a::model-a')
+
+      const remote = new FakeListener('web:client:a', undefined, true)
+      expect(mgr.attachOrWaitListener(remote, { topicId: 'a' })).toEqual({ status: 'attached', bufferedChunks: [] })
+
+      startSingle(mgr, {
+        topicId: 'a',
+        modelId: 'provider-a::model-a',
+        request: req('a'),
+        listeners: [new FakeListener('wc:desktop:second')]
+      })
+      mgr.onChunk('a', 'provider-a::model-a', { type: 'text-delta', id: 'p2', delta: 'next turn' })
+
+      expect(remote.chunks).toEqual([{ type: 'text-delta', id: 'p2', delta: 'next turn' }])
+    })
+
+    it('reuses a persistent remote listener for two consecutive completed turns', async () => {
+      const remote = new FakeListener('web:client:a', undefined, true)
+      mgr.attachOrWaitListener(remote, { topicId: 'a' })
+
+      startSingle(mgr, {
+        topicId: 'a',
+        modelId: 'provider-a::model-a',
+        request: req('a'),
+        listeners: [new FakeListener('wc:desktop:first')]
+      })
+      mgr.onChunk('a', 'provider-a::model-a', { type: 'text-delta', id: 'p1', delta: 'first' })
+      await mgr.onExecutionDone('a', 'provider-a::model-a')
+
+      startSingle(mgr, {
+        topicId: 'a',
+        modelId: 'provider-a::model-a',
+        request: req('a'),
+        listeners: [new FakeListener('wc:desktop:second')]
+      })
+      mgr.onChunk('a', 'provider-a::model-a', { type: 'text-delta', id: 'p2', delta: 'second' })
+
+      expect(remote.chunks).toEqual([
+        { type: 'text-delta', id: 'p1', delta: 'first' },
+        { type: 'text-delta', id: 'p2', delta: 'second' }
+      ])
+      expect(remote.startedExecutions).toHaveLength(2)
+    })
+
     it('attach returns compact replay chunks', () => {
       startSingle(mgr, {
         topicId: 'a',

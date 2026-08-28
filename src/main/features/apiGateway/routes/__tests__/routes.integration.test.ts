@@ -11,8 +11,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // All mock fns live in vi.hoisted so the (hoisted) vi.mock factories can close
 // over them without a TDZ error.
-const { mockPreferenceGet, mockProcessMessage, mockGetModels, mockIsInternalRequestToken } = vi.hoisted(() => ({
+const {
+  mockPreferenceGet,
+  mockPreferenceGetAll,
+  mockPreferenceSet,
+  mockDataApiRequest,
+  mockIpcApiRequest,
+  mockProcessMessage,
+  mockGetModels,
+  mockIsInternalRequestToken
+} = vi.hoisted(() => ({
   mockPreferenceGet: vi.fn<(key: string) => unknown>(() => 'test-key'),
+  mockPreferenceGetAll: vi.fn(() => ({ 'app.language': 'en-US' })),
+  mockPreferenceSet: vi.fn(async () => {}),
+  mockDataApiRequest: vi.fn(async (request: unknown) => ({ id: 'request-1', status: 200, data: request })),
+  mockIpcApiRequest: vi.fn(async (route: string, input: unknown) => ({ ok: true, data: { route, input } })),
   mockProcessMessage: vi.fn<(config: unknown) => Promise<Response>>(
     async () =>
       new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
@@ -24,7 +37,9 @@ const { mockPreferenceGet, mockProcessMessage, mockGetModels, mockIsInternalRequ
 vi.mock('@application', async () => {
   const { mockApplicationFactory } = await import('@test-mocks/main/application')
   const overrides = {
-    PreferenceService: { get: mockPreferenceGet },
+    PreferenceService: { get: mockPreferenceGet, getAll: mockPreferenceGetAll, set: mockPreferenceSet },
+    DataApiService: { getApiServer: () => ({ handleRequest: mockDataApiRequest }) },
+    IpcApiService: { requestFromRemote: mockIpcApiRequest },
     ApiGatewayService: { isInternalRequestToken: mockIsInternalRequestToken }
   }
   return mockApplicationFactory(overrides)
@@ -111,6 +126,67 @@ describe('API gateway routes (integration)', () => {
 
       const custom = await read(await get(buildApp({ host: '0.0.0.0', port: 8080 }), '/openapi/json', {}))
       expect(custom.body.servers).toEqual([{ url: 'http://0.0.0.0:8080' }])
+    })
+  })
+
+  describe('web client bridge', () => {
+    it('validates credentials through the web session endpoint', async () => {
+      const missing = await read(await post(app, '/web/api/session', undefined, { 'content-type': 'application/json' }))
+      expect(missing.status).toBe(401)
+      expect((await post(app, '/web/api/session', undefined)).status).toBe(200)
+    })
+
+    it('requires authentication for web API requests', async () => {
+      const { status, body } = await read(
+        await post(app, '/web/api/preference', { action: 'getAll' }, { 'content-type': 'application/json' })
+      )
+      expect(status).toBe(401)
+      expect(body).toEqual({ error: 'Unauthorized: missing credentials' })
+    })
+
+    it('forwards authenticated DataApi requests through the existing server', async () => {
+      const request = { id: 'request-1', method: 'GET', path: '/assistants' }
+      const { status, body } = await read(await post(app, '/web/api/data', request))
+      expect(status).toBe(200)
+      expect(mockDataApiRequest).toHaveBeenCalledWith(request)
+      expect(body.data).toEqual(request)
+    })
+
+    it('dispatches authenticated IpcApi requests without a window identity', async () => {
+      const { status, body } = await read(
+        await post(app, '/web/api/ipc', { route: 'ai.agent.task.run', input: { agentId: 'a1', taskId: 't1' } })
+      )
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('ai.agent.task.run', { agentId: 'a1', taskId: 't1' })
+      expect(body.ok).toBe(true)
+    })
+
+    it('rejects IpcApi routes outside the remote allowlist', async () => {
+      const { status, body } = await read(
+        await post(app, '/web/api/ipc', { route: 'application.relaunch', input: undefined })
+      )
+      expect(status).toBe(403)
+      expect(body).toEqual({ error: 'Route is not available to remote clients' })
+      expect(mockIpcApiRequest).not.toHaveBeenCalled()
+    })
+
+    it('allows the read-only region route required by web bootstrap', async () => {
+      const { status } = await read(await post(app, '/web/api/ipc', { route: 'system.get_ip_country' }))
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('system.get_ip_country', undefined)
+    })
+
+    it('reads and writes preferences through the main preference service', async () => {
+      const readResult = await read(await post(app, '/web/api/preference', { action: 'getAll' }))
+      expect(readResult.body).toEqual({ data: { 'app.language': 'en-US' } })
+
+      const writeResult = await post(app, '/web/api/preference', {
+        action: 'set',
+        key: 'app.language',
+        value: 'vi-VN'
+      })
+      expect(writeResult.status).toBe(200)
+      expect(mockPreferenceSet).toHaveBeenCalledWith('app.language', 'vi-VN')
     })
   })
 

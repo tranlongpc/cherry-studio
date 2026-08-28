@@ -24,6 +24,7 @@ import { createMcpRoutes } from './routes/mcp'
 import { messagesRoutes } from './routes/messages'
 import { modelsRoutes } from './routes/models'
 import { responsesRoutes } from './routes/responses'
+import { webRoutes } from './routes/web'
 
 const logger = loggerService.withContext('ApiGateway')
 
@@ -178,6 +179,7 @@ export function buildApp({
     // `?key=` credentials). Registering `/v1beta` first keeps it out of that guard's
     // reach; the `local` gemini guard does not leak back onto `/v1`.
     .use(geminiRoutes)
+    .use(webRoutes)
     .use(buildV1Routes(mcpSessions))
 
   return app

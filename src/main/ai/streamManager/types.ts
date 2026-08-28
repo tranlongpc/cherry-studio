@@ -1,6 +1,6 @@
 import type { Span } from '@opentelemetry/api'
 import type { CompactionAnchorData } from '@shared/ai/compaction'
-import type { StreamChunkPayload, TopicStreamStatus } from '@shared/ai/transport'
+import type { ActiveExecution, StreamChunkPayload, TopicStreamStatus } from '@shared/ai/transport'
 import type { CherryUIMessage, MessageRuntimeTiming } from '@shared/data/types/message'
 import type { UniqueModelId } from '@shared/data/types/model'
 import type { SerializedError } from '@shared/types/error'
@@ -84,7 +84,11 @@ export interface StreamListener {
   readonly id: string
   /** Orders terminal persistence before notifications and cleanup work after them. */
   readonly terminalPhase?: 'persistence' | 'cleanup'
+  /** Keep this transport subscribed when the current turn ends. */
+  readonly persistAcrossTurns?: boolean
 
+  /** Optional transport signal emitted once a newly created turn has runtime identities. */
+  onStarted?(activeExecutions: ActiveExecution[]): void
   onChunk(chunk: UIMessageChunk, sourceModelId?: UniqueModelId, anchorMessageId?: string, attemptId?: number): void
   onDone(result: StreamDoneResult): void | Promise<void>
   onPaused(result: StreamPausedResult): void | Promise<void>

@@ -323,6 +323,8 @@ export class AiStreamManager extends BaseService {
   private readonly _onConversationCompleted = new Emitter<ConversationCompletedEvent>()
   public readonly onConversationCompleted: Event<ConversationCompletedEvent> = this._onConversationCompleted.event
   private readonly activeStreams = new Map<string, ActiveStream>()
+  /** Remote clients watching an idle topic; moved into the next stream before its first chunk. */
+  private readonly waitingListeners = new Map<string, Map<string, StreamListener>>()
   /** Serialises `prepareDispatch → send` per topic so concurrent `ai.stream.open` requests can't race
    *  the `hasLiveStream` snapshot and orphan a PENDING placeholder row. */
   private readonly dispatchLock = new KeyedMutex()
@@ -629,6 +631,7 @@ export class AiStreamManager extends BaseService {
   }
 
   protected onDestroy(): void {
+    this.waitingListeners.clear()
     this._onApprovalRequested.dispose()
     this._onConversationCompleted.dispose()
   }
@@ -836,13 +839,16 @@ export class AiStreamManager extends BaseService {
       executions.set(modelId, exec)
     }
 
+    const listeners = new Map(input.listeners.map((listener) => [listener.id, listener]))
+    for (const listener of this.takeWaitingListeners(input.topicId)) listeners.set(listener.id, listener)
+
     const stream: ActiveStream = {
       topicId: input.topicId,
       // Surfaced into the topic status snapshot and the main-only completion event as this turn's
       // stable identity.
       turnId: `${Date.now()}:${++this.nextStreamTurnSequence}`,
       executions,
-      listeners: new Map(input.listeners.map((l) => [l.id, l])),
+      listeners,
       // `pending` → `streaming` on first chunk.
       status: 'pending',
       isMultiModel,
@@ -850,6 +856,8 @@ export class AiStreamManager extends BaseService {
       isPersistentConversation: input.isPersistentConversation === true
     }
     this.activeStreams.set(input.topicId, stream)
+    const activeExecutions = [...executions.values()].map(toActiveExecution)
+    for (const listener of listeners.values()) listener.onStarted?.(activeExecutions)
     // Chat broadcasts to SharedCache so `useChatWithHistory.resumeActiveStream` can attach; prompt is silent.
     stream.lifecycle.onCreated(stream)
 
@@ -859,7 +867,7 @@ export class AiStreamManager extends BaseService {
 
     return {
       mode: 'started',
-      activeExecutions: [...executions.values()].map(toActiveExecution)
+      activeExecutions
     }
   }
 
@@ -1119,6 +1127,16 @@ export class AiStreamManager extends BaseService {
   removeListener(topicId: string, listenerId: string): void {
     const stream = this.activeStreams.get(topicId)
     stream?.listeners.delete(listenerId)
+    const waiting = this.waitingListeners.get(topicId)
+    waiting?.delete(listenerId)
+    if (waiting?.size === 0) this.waitingListeners.delete(topicId)
+  }
+
+  private takeWaitingListeners(topicId: string): StreamListener[] {
+    const waiting = this.waitingListeners.get(topicId)
+    if (!waiting) return []
+    this.waitingListeners.delete(topicId)
+    return [...waiting.values()].filter((listener) => listener.isAlive())
   }
 
   /**
@@ -1575,12 +1593,23 @@ export class AiStreamManager extends BaseService {
 
   /** Chat defers 30 s, prompt evicts immediately. */
   private runTerminalLifecycle(stream: ActiveStream): void {
+    this.parkPersistentListeners(stream)
     stream.lifecycle.onTerminal(stream)
     stream.lifecycle.cleanup(stream, () => {
       if (this.activeStreams.get(stream.topicId) === stream) {
         this.activeStreams.delete(stream.topicId)
       }
     })
+  }
+
+  private parkPersistentListeners(stream: ActiveStream): void {
+    for (const [listenerId, listener] of stream.listeners) {
+      if (!listener.persistAcrossTurns || !listener.isAlive()) continue
+      const waiting = this.waitingListeners.get(stream.topicId) ?? new Map<string, StreamListener>()
+      waiting.set(listenerId, listener)
+      this.waitingListeners.set(stream.topicId, waiting)
+      stream.listeners.delete(listenerId)
+    }
   }
 
   /** Drain-dedup + microtask defer for the steer continuation. Mirrors `scheduleNextTurn`.
@@ -1728,6 +1757,10 @@ export class AiStreamManager extends BaseService {
   // the same code path with a fake `WebContents`-shaped sender.
 
   attach(sender: Electron.WebContents, req: AiStreamAttachRequest): AiStreamAttachResponse {
+    return this.attachListener(new WebContentsListener(sender, req.topicId), req)
+  }
+
+  attachListener(listener: StreamListener, req: AiStreamAttachRequest): AiStreamAttachResponse {
     const stream = this.activeStreams.get(req.topicId)
     if (!stream) return { status: 'not-found' }
     // Prompt-stream lifecycle returns false here — re-attach is meaningless
@@ -1771,7 +1804,6 @@ export class AiStreamManager extends BaseService {
 
     // Reconnect: compact-replay each execution's buffer in isolation so
     // text-delta / reasoning-delta merging stays per-execution.
-    const listener = new WebContentsListener(sender, req.topicId)
     stream.listeners.set(listener.id, listener)
 
     const totalDropped = [...stream.executions.values()].reduce((sum, exec) => sum + exec.droppedChunks, 0)
@@ -1791,8 +1823,25 @@ export class AiStreamManager extends BaseService {
     return { status: 'attached', bufferedChunks }
   }
 
+  attachOrWaitListener(listener: StreamListener, req: AiStreamAttachRequest): AiStreamAttachResponse {
+    const stream = this.activeStreams.get(req.topicId)
+    if (stream && isLiveStatus(stream.status) && stream.lifecycle.canAttach(stream)) {
+      this.addListener(req.topicId, listener)
+      return { status: 'attached', bufferedChunks: [] }
+    }
+
+    const waiting = this.waitingListeners.get(req.topicId) ?? new Map<string, StreamListener>()
+    waiting.set(listener.id, listener)
+    this.waitingListeners.set(req.topicId, waiting)
+    return { status: 'attached', bufferedChunks: [] }
+  }
+
   detach(sender: Electron.WebContents, req: AiStreamDetachRequest): void {
     this.removeListener(req.topicId, `wc:${sender.id}:${req.topicId}`)
+  }
+
+  detachListener(topicId: string, listenerId: string): void {
+    this.removeListener(topicId, listenerId)
   }
 
   /** Full output of a deferred tool call, while the stream that produced it is still active. */
