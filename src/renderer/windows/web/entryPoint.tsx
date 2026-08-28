@@ -6,32 +6,27 @@ import type { ComponentType } from 'react'
 import { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import { authenticateWebToken, clearWebToken, getWebToken, installWebBridge } from './webBridge'
+import { authenticateWebSession, clearWebSession, installWebBridge } from './webBridge'
 import { WebLoginPage } from './WebLoginPage'
 
 installWebBridge()
 
-const rootElement = document.getElementById('root') as HTMLElement
-window.root = rootElement
-
 function WebRoot(): React.ReactElement {
   const [sessionVersion, setSessionVersion] = useState(0)
-  const [loginRequired, setLoginRequired] = useState(() => !getWebToken())
+  const [loginRequired, setLoginRequired] = useState(false)
   const [WebApp, setWebApp] = useState<ComponentType | null>(null)
 
   useEffect(() => {
-    const token = getWebToken()
-    if (!token) return
     let active = true
 
-    void authenticateWebToken(token)
+    void authenticateWebSession()
       .then(() => Promise.all([import('@renderer/windows/prepareWindow'), import('./WebApp')]))
       .then(async ([{ prepareWindow }, { default: App }]) => {
         await prepareWindow({ preference: 'all' })
         if (active) setWebApp(() => App)
       })
       .catch(() => {
-        clearWebToken()
+        clearWebSession()
         if (active) setLoginRequired(true)
       })
 
@@ -59,4 +54,9 @@ function WebRoot(): React.ReactElement {
   return <WebApp />
 }
 
-createRoot(rootElement).render(<WebRoot />)
+void import('@renderer/i18n/resolver').then(async ({ initI18n }) => {
+  await initI18n()
+  const rootElement = document.getElementById('root') as HTMLElement
+  window.root = rootElement
+  createRoot(rootElement).render(<WebRoot />)
+})

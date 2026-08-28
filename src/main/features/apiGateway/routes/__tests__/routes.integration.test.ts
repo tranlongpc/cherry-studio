@@ -1,3 +1,5 @@
+import { scryptSync } from 'node:crypto'
+
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
@@ -95,6 +97,7 @@ vi.mock('@data/services/KnowledgeBaseService', () => ({
 }))
 
 import { buildApp } from '../../app'
+import { clearWebSessions } from '../../webAuth'
 
 const AUTH = { 'content-type': 'application/json', 'x-api-key': 'test-key' }
 
@@ -144,10 +147,54 @@ describe('API gateway routes (integration)', () => {
   })
 
   describe('web client bridge', () => {
+    let cookie: string
+    let setCookie: string
+
+    beforeEach(async () => {
+      clearWebSessions()
+      vi.stubEnv('CHERRY_WEB_EMAIL', 'user@example.com')
+      vi.stubEnv(
+        'CHERRY_WEB_PASSWORD_HASH',
+        `scrypt$test-salt$${scryptSync('secret-password', 'test-salt', 64).toString('hex')}`
+      )
+      const response = await post(
+        app,
+        '/web/api/session',
+        { email: 'user@example.com', password: 'secret-password' },
+        { 'content-type': 'application/json' }
+      )
+      setCookie = response.headers.get('set-cookie')!
+      cookie = setCookie.split(';')[0]
+    })
+
+    const webPost = (path: string, body: unknown, headers: Record<string, string> = {}) =>
+      post(app, path, body, { 'content-type': 'application/json', cookie, ...headers })
+
     it('validates credentials through the web session endpoint', async () => {
-      const missing = await read(await post(app, '/web/api/session', undefined, { 'content-type': 'application/json' }))
-      expect(missing.status).toBe(401)
-      expect((await post(app, '/web/api/session', undefined)).status).toBe(200)
+      const invalid = await read(
+        await post(
+          app,
+          '/web/api/session',
+          { email: 'user@example.com', password: 'wrong-password' },
+          { 'content-type': 'application/json' }
+        )
+      )
+      expect(invalid.status).toBe(401)
+      expect((await get(app, '/web/api/session', { cookie })).status).toBe(200)
+    })
+
+    it('creates an HttpOnly same-site session cookie without exposing the gateway key', () => {
+      expect(setCookie).toContain('HttpOnly')
+      expect(setCookie).toContain('SameSite=Strict')
+      expect(setCookie).toContain('Path=/web/api')
+      expect(setCookie).not.toContain('test-key')
+    })
+
+    it('does not accept the event client identifier from the URL', async () => {
+      const response = await get(app, '/web/api/events?clientId=event-client', { cookie })
+
+      expect(response.status).toBe(400)
+      expect(await response.text()).toBe('Missing clientId')
     })
 
     it('requires authentication for web API requests', async () => {
@@ -155,12 +202,17 @@ describe('API gateway routes (integration)', () => {
         await post(app, '/web/api/preference', { action: 'getAll' }, { 'content-type': 'application/json' })
       )
       expect(status).toBe(401)
-      expect(body).toEqual({ error: 'Unauthorized: missing credentials' })
+      expect(body).toEqual({ error: 'Unauthorized' })
+    })
+
+    it('does not accept the API Gateway key as web authentication', async () => {
+      const response = await post(app, '/web/api/preference', { action: 'getAll' })
+      expect(response.status).toBe(401)
     })
 
     it('forwards authenticated DataApi requests through the existing server', async () => {
       const request = { id: 'request-1', method: 'GET', path: '/assistants' }
-      const { status, body } = await read(await post(app, '/web/api/data', request))
+      const { status, body } = await read(await webPost('/web/api/data', request))
       expect(status).toBe(200)
       expect(mockDataApiRequest).toHaveBeenCalledWith(request)
       expect(body.data).toEqual(request)
@@ -168,16 +220,25 @@ describe('API gateway routes (integration)', () => {
 
     it('dispatches authenticated IpcApi requests without a window identity', async () => {
       const { status, body } = await read(
-        await post(app, '/web/api/ipc', { route: 'ai.agent.task.run', input: { agentId: 'a1', taskId: 't1' } })
+        await webPost('/web/api/ipc', { route: 'ai.agent.task.run', input: { agentId: 'a1', taskId: 't1' } })
       )
       expect(status).toBe(200)
       expect(mockIpcApiRequest).toHaveBeenCalledWith('ai.agent.task.run', { agentId: 'a1', taskId: 't1' })
       expect(body.ok).toBe(true)
     })
 
+    it('allows creating a knowledge base from the web client', async () => {
+      const input = { base: { name: 'Web knowledge', model: null } }
+      const { status, body } = await read(await webPost('/web/api/ipc', { route: 'knowledge.create_base', input }))
+
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('knowledge.create_base', input)
+      expect(body.ok).toBe(true)
+    })
+
     it('rejects IpcApi routes outside the remote allowlist', async () => {
       const { status, body } = await read(
-        await post(app, '/web/api/ipc', { route: 'application.relaunch', input: undefined })
+        await webPost('/web/api/ipc', { route: 'application.relaunch', input: undefined })
       )
       expect(status).toBe(403)
       expect(body).toEqual({ error: 'Route is not available to remote clients' })
@@ -185,16 +246,16 @@ describe('API gateway routes (integration)', () => {
     })
 
     it('allows the read-only region route required by web bootstrap', async () => {
-      const { status } = await read(await post(app, '/web/api/ipc', { route: 'system.get_ip_country' }))
+      const { status } = await read(await webPost('/web/api/ipc', { route: 'system.get_ip_country' }))
       expect(status).toBe(200)
       expect(mockIpcApiRequest).toHaveBeenCalledWith('system.get_ip_country', undefined)
     })
 
     it('reads and writes preferences through the main preference service', async () => {
-      const readResult = await read(await post(app, '/web/api/preference', { action: 'getAll' }))
+      const readResult = await read(await webPost('/web/api/preference', { action: 'getAll' }))
       expect(readResult.body).toEqual({ data: { 'app.language': 'en-US' } })
 
-      const writeResult = await post(app, '/web/api/preference', {
+      const writeResult = await webPost('/web/api/preference', {
         action: 'set',
         key: 'app.language',
         value: 'vi-VN'
@@ -208,7 +269,7 @@ describe('API gateway routes (integration)', () => {
         new Request('http://localhost/web/api/files', {
           method: 'POST',
           headers: {
-            'x-api-key': 'test-key',
+            cookie,
             'content-type': 'application/octet-stream',
             'x-file-name': encodeURIComponent('notes.txt')
           },
@@ -236,7 +297,7 @@ describe('API gateway routes (integration)', () => {
         createdAt: 1_700_000_000_000
       })
       const create = await read(
-        await post(app, '/web/api/file', {
+        await webPost('/web/api/file', {
           action: 'createInternalEntry',
           params: {
             source: 'path',
@@ -246,7 +307,7 @@ describe('API gateway routes (integration)', () => {
         })
       )
       const physical = await read(
-        await post(app, '/web/api/file', {
+        await webPost('/web/api/file', {
           action: 'getPhysicalPath',
           id: '01912345-6789-7abc-8def-0123456789ab'
         })
@@ -262,7 +323,7 @@ describe('API gateway routes (integration)', () => {
     })
 
     it('rejects Notes writes outside Cherry-managed Notes storage', async () => {
-      const response = await post(app, '/web/api/file', {
+      const response = await webPost('/web/api/file', {
         action: 'notesWrite',
         filePath: '/tmp/outside.md',
         content: 'blocked'
@@ -271,7 +332,7 @@ describe('API gateway routes (integration)', () => {
     })
 
     it('rejects managed file reads outside Files and Notes storage', async () => {
-      const response = await post(app, '/web/api/file', {
+      const response = await webPost('/web/api/file', {
         action: 'readManaged',
         filePath: '/etc/passwd',
         encoding: true

@@ -1,7 +1,7 @@
 import { ipcApi } from '@renderer/ipc'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { authenticateWebToken, clearWebToken, installWebBridge } from '../webBridge'
+import { authenticateWebCredentials, clearWebSession, installWebBridge } from '../webBridge'
 
 function eventStreamResponse(): { response: Response; send: (message: unknown) => void } {
   let controller!: ReadableStreamDefaultController<Uint8Array>
@@ -20,7 +20,7 @@ function eventStreamResponse(): { response: Response; send: (message: unknown) =
 
 describe('webBridge', () => {
   beforeEach(() => {
-    clearWebToken()
+    clearWebSession()
     vi.restoreAllMocks()
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -33,7 +33,7 @@ describe('webBridge', () => {
     vi.spyOn(window, 'fetch').mockResolvedValueOnce(
       new Response(JSON.stringify({ authenticated: true }), { status: 200 })
     )
-    await authenticateWebToken('cs-sk-valid')
+    await authenticateWebCredentials('user@example.com', 'secret-password')
   }
 
   it('resolves browser-native capabilities without calling the server', async () => {
@@ -52,9 +52,15 @@ describe('webBridge', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  it('stores a validated key only in session storage', async () => {
+  it('sends credentials in the request body without storing them in browser storage', async () => {
     await authenticate()
-    expect(sessionStorage.getItem('cherry-web-token')).toBe('cs-sk-valid')
+    const request = vi.mocked(window.fetch).mock.calls[0]
+    expect(request[0]).toBe('/web/api/session')
+    expect(request[1]).toMatchObject({
+      method: 'POST',
+      body: JSON.stringify({ email: 'user@example.com', password: 'secret-password' })
+    })
+    expect(sessionStorage.length).toBe(0)
     expect(localStorage.getItem('cherry-web-token')).toBeNull()
   })
 
@@ -101,7 +107,12 @@ describe('webBridge', () => {
     })
     await vi.waitFor(() => expect(chunks).toEqual(['first', 'second']))
 
-    expect(fetchSpy.mock.calls.filter(([url]) => String(url).includes('/web/api/events'))).toHaveLength(1)
+    const eventRequests = fetchSpy.mock.calls.filter(([url]) => String(url).includes('/web/api/events'))
+    expect(eventRequests).toHaveLength(1)
+    expect(eventRequests[0]).toEqual([
+      '/web/api/events',
+      expect.objectContaining({ headers: { 'x-cherry-web-client-id': expect.any(String) } })
+    ])
     expect(fetchSpy.mock.calls.filter(([url]) => String(url).includes('/web/api/stream/subscription'))).toHaveLength(1)
   })
 

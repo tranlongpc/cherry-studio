@@ -137,6 +137,12 @@ describe('buildPathRegistry', () => {
     )
   })
 
+  it('stores web authentication outside the packaged application', () => {
+    const registry = buildPathRegistry()
+
+    expect(registry['feature.api_gateway.web_auth_file']).toBe('/mock/userData/web-auth.env')
+  })
+
   it('uses the shared user-owned DeepSeek Harness home', () => {
     const registry = buildPathRegistry()
     expect(registry['external.deepseek_harness.config']).toBe(path.join(os.homedir(), '.dsh'))

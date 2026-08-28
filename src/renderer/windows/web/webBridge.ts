@@ -10,8 +10,6 @@ import { ThemeMode } from '@shared/data/preference/preferenceTypes'
 import type { FileMetadata } from '@shared/data/types/legacyFile'
 import type { CreateInternalEntryIpcParams, GetPhysicalPathIpcParams } from '@shared/types/file'
 
-const TOKEN_STORAGE_KEY = 'cherry-web-token'
-
 type Listener = (...args: any[]) => void
 const eventListeners = new Map<string, Set<(payload: unknown) => void>>()
 const cacheSyncListeners = new Set<(message: CacheSyncMessage) => void>()
@@ -66,12 +64,7 @@ function publishTopicStatus(eventName: string, event: WebAiStreamEvent): void {
   cacheSyncListeners.forEach((listener) => listener(message))
 }
 
-export function getWebToken(): string | null {
-  return sessionStorage.getItem(TOKEN_STORAGE_KEY)
-}
-
-export function clearWebToken(): void {
-  sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+export function clearWebSession(): void {
   eventStreamController?.abort()
   eventStreamController = null
   eventStreamReady = null
@@ -79,24 +72,27 @@ export function clearWebToken(): void {
   activeExecutionsByTopic.clear()
 }
 
-export async function authenticateWebToken(token: string): Promise<void> {
-  const normalized = token.trim()
+export async function authenticateWebCredentials(email: string, password: string): Promise<void> {
   const response = await fetch('/web/api/session', {
     method: 'POST',
-    headers: { authorization: `Bearer ${normalized}` }
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: email.trim(), password })
   })
-  if (!response.ok) throw new Error(response.status === 401 ? 'API key is required' : 'API key is not valid')
-  sessionStorage.setItem(TOKEN_STORAGE_KEY, normalized)
+  if (!response.ok) {
+    const payload = await response.json().catch(() => undefined)
+    throw new Error(payload?.error ?? `Request failed with status ${response.status}`)
+  }
+}
+
+export async function authenticateWebSession(): Promise<void> {
+  const response = await fetch('/web/api/session')
+  if (!response.ok) throw new Error(`Request failed with status ${response.status}`)
 }
 
 async function request<T>(path: string, body: unknown): Promise<T> {
-  const token = getWebToken()
-  if (!token) throw new Error('Sign in to Cherry Studio Web first')
-
   const response = await fetch(path, {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${token}`,
       'content-type': 'application/json'
     },
     body: JSON.stringify(body)
@@ -113,14 +109,11 @@ async function preferenceRequest<T>(body: unknown): Promise<T> {
 }
 
 async function uploadBrowserFiles(files: File[]): Promise<FileMetadata[]> {
-  const token = getWebToken()
-  if (!token) throw new Error('Sign in to Cherry Studio Web first')
   return Promise.all(
     files.map(async (file) => {
       const response = await fetch('/web/api/files', {
         method: 'POST',
         headers: {
-          authorization: `Bearer ${token}`,
           'content-type': 'application/octet-stream',
           'x-file-name': encodeURIComponent(file.name)
         },
@@ -209,16 +202,14 @@ function handleEventMessage(raw: string): void {
 }
 
 function ensureEventStream(): Promise<void> {
-  const token = getWebToken()
-  if (!token) throw new Error('Sign in to Cherry Studio Web first')
   if (eventStreamReady) return eventStreamReady
 
   eventStreamController = new AbortController()
   eventStreamReady = (async () => {
-    const response = await fetch(
-      `/web/api/events?clientId=${encodeURIComponent(eventClientId)}&token=${encodeURIComponent(token)}`,
-      { signal: eventStreamController!.signal }
-    )
+    const response = await fetch('/web/api/events', {
+      headers: { 'x-cherry-web-client-id': eventClientId },
+      signal: eventStreamController.signal
+    })
     if (!response.ok || !response.body) throw new Error(`Event stream failed with status ${response.status}`)
     const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
     let buffer = ''

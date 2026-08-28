@@ -10,6 +10,7 @@ import { REDACTED } from '@shared/utils/redaction'
 import { v4 as uuidv4 } from 'uuid'
 
 import type { ApiGateway } from './server'
+import { loadWebAuthEnvironment } from './webAuth'
 
 const logger = loggerService.withContext('ApiGatewayService')
 const AGENT_SESSION_ID_HEADER = 'x-cherry-agent-session-id'
@@ -70,6 +71,7 @@ export class ApiGatewayService extends BaseService implements Activatable {
   }
 
   protected async onReady(): Promise<void> {
+    await loadWebAuthEnvironment()
     const config = this.getCurrentConfig()
     // Never log the raw API key — redact before emitting.
     logger.info('API gateway config:', { ...config, apiKey: config.apiKey ? REDACTED : null })

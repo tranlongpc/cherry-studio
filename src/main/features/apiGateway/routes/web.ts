@@ -16,7 +16,7 @@ import { FILE_TYPE, type FileType } from '@shared/types/file'
 import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/utils/file'
 import { Elysia } from 'elysia'
 
-import { authorizeApiRequest } from '../middleware/auth'
+import { authenticateWebCredentials, isWebSessionAuthenticated, webAuthConfigured, webSessionCookie } from '../webAuth'
 import { type WebStreamEvent, WebStreamListener } from '../WebStreamListener'
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -94,6 +94,7 @@ const REMOTE_IPC_ROUTES = [
   'ai.tool.get_result',
   'app.get_info',
   'file.get_metadata',
+  'knowledge.create_base',
   'system.get_ip_country'
 ] as const
 
@@ -101,16 +102,10 @@ function isRemoteIpcRoute(route: string): boolean {
   return (REMOTE_IPC_ROUTES as readonly string[]).includes(route)
 }
 
-function bearerToken(headers: Record<string, string | undefined>): string | undefined {
-  const authorization = headers.authorization
-  return authorization?.startsWith('Bearer ') ? authorization.slice(7) : undefined
-}
-
-function authorize(headers: Record<string, string | undefined>, set: { status?: number | string }) {
-  const failure = authorizeApiRequest(headers['x-api-key'], bearerToken(headers))
-  if (!failure) return undefined
-  set.status = failure.status
-  return { error: failure.error }
+function authorize(request: Request, set: { status?: number | string }) {
+  if (isWebSessionAuthenticated(request)) return undefined
+  set.status = 401
+  return { error: 'Unauthorized' }
 }
 
 function rendererRoot(): string {
@@ -212,13 +207,12 @@ export const webRoutes = new Elysia()
   .get('/assets/*', ({ params }) => staticResponse(`assets/${params['*']}`), { detail: { hide: true } })
   .get(
     '/web/api/events',
-    ({ query, request, set }) => {
-      const failure = authorizeApiRequest(undefined, typeof query.token === 'string' ? query.token : undefined)
+    ({ request, set }) => {
+      const failure = authorize(request, set)
       if (failure) {
-        set.status = failure.status
         return failure.error
       }
-      const clientId = typeof query.clientId === 'string' ? query.clientId : ''
+      const clientId = request.headers.get('x-cherry-web-client-id')?.trim() ?? ''
       if (!clientId) {
         set.status = 400
         return 'Missing clientId'
@@ -243,8 +237,8 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/stream/subscription',
-    ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    ({ body, request, set }) => {
+      const failure = authorize(request, set)
       if (failure) return failure
       const { clientId, topicId, action } = body as {
         clientId: string
@@ -284,16 +278,38 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/session',
-    ({ headers, set }) => {
-      const failure = authorize(headers, set)
+    async ({ body, request, set }) => {
+      if (!webAuthConfigured()) {
+        set.status = 503
+        return { error: 'Web authentication is not configured' }
+      }
+      const { email, password } = body as { email?: string; password?: string }
+      if (!email || !password) {
+        set.status = 400
+        return { error: 'Email and password are required' }
+      }
+      const token = await authenticateWebCredentials(email, password)
+      if (!token) {
+        set.status = 401
+        return { error: 'Invalid email or password' }
+      }
+      set.headers['set-cookie'] = webSessionCookie(token, new URL(request.url).protocol === 'https:')
+      return { authenticated: true }
+    },
+    { detail: { hide: true } }
+  )
+  .get(
+    '/web/api/session',
+    ({ request, set }) => {
+      const failure = authorize(request, set)
       return failure ?? { authenticated: true }
     },
     { detail: { hide: true } }
   )
   .post(
     '/web/api/data',
-    async ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    async ({ body, request, set }) => {
+      const failure = authorize(request, set)
       if (failure) return failure
       return application
         .get('DataApiService')
@@ -304,8 +320,8 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/files',
-    async ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    async ({ body, headers, request, set }) => {
+      const failure = authorize(request, set)
       if (failure) return failure
       const encodedName = headers['x-file-name']
       if (!encodedName) {
@@ -319,8 +335,8 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/file',
-    async ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    async ({ body, request: httpRequest, set }) => {
+      const failure = authorize(httpRequest, set)
       if (failure) return failure
       const request = body as FileRequest
       const manager = application.get('FileManager')
@@ -367,8 +383,8 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/ipc',
-    async ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    async ({ body, request: httpRequest, set }) => {
+      const failure = authorize(httpRequest, set)
       if (failure) return failure
       const request = body as { route: string; input: unknown }
       if (!isRemoteIpcRoute(request.route)) {
@@ -381,8 +397,8 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/stream/open',
-    async ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    async ({ body, request, set }) => {
+      const failure = authorize(request, set)
       if (failure) return failure
       const streamRequest = body as AiStreamOpenRequest
       try {
@@ -398,8 +414,8 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/translate/open',
-    ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    ({ body, request: httpRequest, set }) => {
+      const failure = authorize(httpRequest, set)
       if (failure) return failure
       const request = body as { clientId: string; streamId: string; text: string; targetLangCode: string }
       const listener = webEventClients.get(request.clientId)?.listeners.get(request.streamId)
@@ -413,8 +429,8 @@ export const webRoutes = new Elysia()
   )
   .post(
     '/web/api/preference',
-    async ({ body, headers, set }) => {
-      const failure = authorize(headers, set)
+    async ({ body, request: httpRequest, set }) => {
+      const failure = authorize(httpRequest, set)
       if (failure) return failure
 
       const request = body as PreferenceRequest

@@ -1,37 +1,39 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WebLoginPage } from '../WebLoginPage'
 
-const authenticateWebToken = vi.hoisted(() => vi.fn())
+const authenticateWebCredentials = vi.hoisted(() => vi.fn())
 
-vi.mock('../webBridge', () => ({ authenticateWebToken }))
+vi.mock('../webBridge', () => ({ authenticateWebCredentials }))
 
 describe('WebLoginPage', () => {
   beforeEach(() => {
-    authenticateWebToken.mockReset()
+    authenticateWebCredentials.mockReset()
   })
 
-  it('authenticates the entered API key without putting it in the URL', async () => {
+  it('authenticates the entered email and password without putting them in the URL', async () => {
     const onAuthenticated = vi.fn()
-    authenticateWebToken.mockResolvedValue(undefined)
+    authenticateWebCredentials.mockResolvedValue(undefined)
     render(<WebLoginPage onAuthenticated={onAuthenticated} />)
 
-    fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'cs-sk-secret' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    fireEvent.change(document.querySelector('#web-email')!, { target: { value: 'user@example.com' } })
+    fireEvent.change(document.querySelector('#web-password')!, { target: { value: 'secret-password' } })
+    fireEvent.click(document.querySelector('button[type="submit"]')!)
 
     await waitFor(() => expect(onAuthenticated).toHaveBeenCalledOnce())
-    expect(authenticateWebToken).toHaveBeenCalledWith('cs-sk-secret')
+    expect(authenticateWebCredentials).toHaveBeenCalledWith('user@example.com', 'secret-password')
     expect(window.location.search).toBe('')
   })
 
   it('keeps the login form visible when authentication fails', async () => {
-    authenticateWebToken.mockRejectedValue(new Error('API key is not valid'))
+    authenticateWebCredentials.mockRejectedValue(new Error('Invalid email or password'))
     render(<WebLoginPage onAuthenticated={vi.fn()} />)
 
-    fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'wrong-key' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    fireEvent.change(document.querySelector('#web-email')!, { target: { value: 'user@example.com' } })
+    fireEvent.change(document.querySelector('#web-password')!, { target: { value: 'wrong-password' } })
+    fireEvent.click(document.querySelector('button[type="submit"]')!)
 
-    expect(await screen.findByText('API key is not valid')).toBeInTheDocument()
+    await waitFor(() => expect(document.querySelector('#web-password')).toHaveAttribute('aria-invalid', 'true'))
   })
 })
