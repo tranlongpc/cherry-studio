@@ -24,7 +24,12 @@ const {
   mockTranslateOpen,
   mockProcessMessage,
   mockGetModels,
-  mockIsInternalRequestToken
+  mockIsInternalRequestToken,
+  mockTreeCreateRemote,
+  mockTreeActivateRemote,
+  mockTreeDisposeRemote,
+  mockTreeDisposeAllRemote,
+  mockTreeRenameRemote
 } = vi.hoisted(() => ({
   mockPreferenceGet: vi.fn<(key: string) => unknown>(() => 'test-key'),
   mockPreferenceGetAll: vi.fn(() => ({ 'app.language': 'en-US' })),
@@ -42,7 +47,16 @@ const {
       new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } })
   ),
   mockGetModels: vi.fn(async () => ({ object: 'list', data: [{ id: 'openai:gpt-4' }] })),
-  mockIsInternalRequestToken: vi.fn((candidate: string | undefined) => candidate === 'internal-request-token')
+  mockIsInternalRequestToken: vi.fn((candidate: string | undefined) => candidate === 'internal-request-token'),
+  mockTreeCreateRemote: vi.fn(async () => ({
+    treeId: 'tree-1',
+    revision: 0,
+    snapshot: { kind: 'directory', path: '/mock/app.userdata.data/Agents', basename: 'Agents', children: {} }
+  })),
+  mockTreeActivateRemote: vi.fn(() => true),
+  mockTreeDisposeRemote: vi.fn(() => true),
+  mockTreeDisposeAllRemote: vi.fn(),
+  mockTreeRenameRemote: vi.fn(() => true)
 }))
 
 vi.mock('@application', async () => {
@@ -52,7 +66,14 @@ vi.mock('@application', async () => {
     DataApiService: { getApiServer: () => ({ handleRequest: mockDataApiRequest }) },
     IpcApiService: { requestFromRemote: mockIpcApiRequest },
     FileManager: { createInternalEntry: mockCreateInternalEntry, getPhysicalPath: mockGetPhysicalPath },
-    ApiGatewayService: { isInternalRequestToken: mockIsInternalRequestToken }
+    ApiGatewayService: { isInternalRequestToken: mockIsInternalRequestToken },
+    DirectoryTreeManager: {
+      createRemote: mockTreeCreateRemote,
+      activateRemoteTree: mockTreeActivateRemote,
+      disposeRemote: mockTreeDisposeRemote,
+      disposeAllForRemoteClient: mockTreeDisposeAllRemote,
+      renameRemote: mockTreeRenameRemote
+    }
   }
   return mockApplicationFactory(overrides)
 })
@@ -236,6 +257,34 @@ describe('API gateway routes (integration)', () => {
       expect(body.ok).toBe(true)
     })
 
+    it('creates a managed directory tree for the connected web event client', async () => {
+      const events = await get(app, '/web/api/events', { cookie, 'x-cherry-web-client-id': 'client-1' })
+      const input = { rootPath: '/mock/app.userdata.data/Agents' }
+      const { status, body } = await read(
+        await webPost('/web/api/ipc', { route: 'file.tree.create', input, clientId: 'client-1' })
+      )
+
+      expect(status).toBe(200)
+      expect(body).toEqual({
+        ok: true,
+        data: {
+          treeId: 'tree-1',
+          revision: 0,
+          snapshot: { kind: 'directory', path: input.rootPath, basename: 'Agents', children: {} }
+        }
+      })
+      expect(mockTreeCreateRemote).toHaveBeenCalledWith(
+        'client-1',
+        expect.any(Function),
+        expect.any(Function),
+        input.rootPath,
+        undefined
+      )
+
+      await events.body?.cancel()
+      expect(mockTreeDisposeAllRemote).toHaveBeenCalledWith('client-1')
+    })
+
     it('rejects IpcApi routes outside the remote allowlist', async () => {
       const { status, body } = await read(
         await webPost('/web/api/ipc', { route: 'application.relaunch', input: undefined })
@@ -249,6 +298,23 @@ describe('API gateway routes (integration)', () => {
       const { status } = await read(await webPost('/web/api/ipc', { route: 'system.get_ip_country' }))
       expect(status).toBe(200)
       expect(mockIpcApiRequest).toHaveBeenCalledWith('system.get_ip_country', undefined)
+    })
+
+    it('allows reading binary snapshots without exposing binary installation', async () => {
+      const names = ['uv', 'bun']
+      const snapshots = await read(await webPost('/web/api/ipc', { route: 'binary.get_tool_snapshots', input: names }))
+
+      expect(snapshots.status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('binary.get_tool_snapshots', names)
+
+      mockIpcApiRequest.mockClear()
+      const install = await read(
+        await webPost('/web/api/ipc', { route: 'binary.install_tool', input: { name: 'bun' } })
+      )
+
+      expect(install.status).toBe(403)
+      expect(install.body).toEqual({ error: 'Route is not available to remote clients' })
+      expect(mockIpcApiRequest).not.toHaveBeenCalled()
     })
 
     it('reads and writes preferences through the main preference service', async () => {

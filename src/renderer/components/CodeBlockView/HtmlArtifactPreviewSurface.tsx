@@ -10,6 +10,7 @@ import HtmlPreviewFrame, {
   injectHtmlPreviewHeadElement
 } from '@renderer/components/CodeBlockView/HtmlPreviewFrame'
 import { htmlArtifactRequiresUserConsent, stripMetaRefresh } from '@renderer/utils/htmlArtifact'
+import { isWeb } from '@renderer/utils/platform'
 import { HTML_ARTIFACT_PREVIEW_DATA_URL_PREFIX, HTML_ARTIFACT_PREVIEW_PARTITION } from '@shared/utils/htmlArtifact'
 import type { ConsoleMessageEvent, WebviewTag } from 'electron'
 import { memo, type RefObject, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -34,12 +35,21 @@ export function htmlArtifactPreviewRequiresInteractive(html: string): boolean {
   return htmlArtifactRequiresUserConsent(html)
 }
 
-function getHtmlArtifactBridgeScript(messagePrefix: string, scrollActivationDelay: number): string {
+function getHtmlArtifactBridgeScript(
+  messagePrefix: string,
+  scrollActivationDelay: number,
+  transport: 'console' | 'parent' = 'console'
+): string {
+  const sendBridgeMessage =
+    transport === 'parent'
+      ? 'const sendBridgeMessage = (message) => parent.postMessage(message, "*")'
+      : 'const sendBridgeMessage = console.debug.bind(console)'
+
   return `(() => {
-    const sendConsoleMessage = console.debug.bind(console)
+    ${sendBridgeMessage}
     document.currentScript?.remove()
     const send = (type, value) => {
-      sendConsoleMessage(${JSON.stringify(messagePrefix)} + JSON.stringify({ type, value }))
+      sendBridgeMessage(${JSON.stringify(messagePrefix)} + JSON.stringify({ type, value }))
     }
     let lastReportedHeight = -1
     const scrollableOverflowPattern = new RegExp(${JSON.stringify(
@@ -195,6 +205,7 @@ export const InteractiveHtmlPreview = memo(function InteractiveHtmlPreview({
 }) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const webviewRef = useRef<WebviewTag | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const contentHeightRef = useRef<number | null>(null)
   const scrollRuntime = useScrollRuntimeBoundary()
   const zoomScale = zoom / 100
@@ -204,6 +215,11 @@ export const InteractiveHtmlPreview = memo(function InteractiveHtmlPreview({
     const bridgeScript = `<script>${getHtmlArtifactBridgeScript(messagePrefix, scrollActivationDelay)}</script>`
     const instrumentedHtml = injectHtmlPreviewHeadElement(html, bridgeScript)
     return `${HTML_ARTIFACT_PREVIEW_DATA_URL_PREFIX}${encodeURIComponent(instrumentedHtml)}`
+  }, [forwardBoundaryWheel, html, messagePrefix])
+  const srcDoc = useMemo(() => {
+    const scrollActivationDelay = forwardBoundaryWheel ? SCROLL_ACTIVATION_DELAY_MS : 0
+    const bridgeScript = `<script>${getHtmlArtifactBridgeScript(messagePrefix, scrollActivationDelay, 'parent')}</script>`
+    return injectHtmlPreviewHeadElement(html, bridgeScript)
   }, [forwardBoundaryWheel, html, messagePrefix])
 
   useLayoutEffect(() => {
@@ -240,6 +256,37 @@ export const InteractiveHtmlPreview = memo(function InteractiveHtmlPreview({
   }, [forwardBoundaryWheel, messagePrefix, onHeightChange, scrollRuntime, zoomScale])
 
   useLayoutEffect(() => {
+    if (!isWeb) return
+
+    const viewport = viewportRef.current
+    const iframe = iframeRef.current
+    if (!viewport || !iframe) return
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.source !== iframe.contentWindow || typeof event.data !== 'string') return
+      const message = parseHtmlArtifactBridgeMessage(event.data, messagePrefix)
+      if (!message) return
+
+      if (message.type === 'height') {
+        contentHeightRef.current = message.value
+        if (!onHeightChange) return
+
+        const nextHeight = Math.min(
+          getMaxPreviewHeight(viewport, scrollRuntime.getScrollContainer()),
+          Math.max(1, Math.ceil(message.value * zoomScale))
+        )
+        onHeightChange(nextHeight)
+        return
+      }
+
+      if (forwardBoundaryWheel) routeWheelScroll(viewport, scrollRuntime, message.value)
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [forwardBoundaryWheel, messagePrefix, onHeightChange, scrollRuntime, zoomScale])
+
+  useLayoutEffect(() => {
     const viewport = viewportRef.current
     const contentHeight = contentHeightRef.current
     if (!viewport || contentHeight === null || !onHeightChange) return
@@ -261,14 +308,25 @@ export const InteractiveHtmlPreview = memo(function InteractiveHtmlPreview({
           height: `${100 / zoomScale}%`,
           transform: `scale(${zoomScale})`
         }}>
-        <webview
-          ref={webviewRef}
-          data-testid="interactive-html-webview"
-          src={src}
-          partition={HTML_ARTIFACT_PREVIEW_PARTITION}
-          aria-label={title}
-          className="inline-flex h-full w-full bg-white"
-        />
+        {isWeb ? (
+          <iframe
+            ref={iframeRef}
+            data-testid="interactive-html-iframe"
+            srcDoc={srcDoc}
+            sandbox="allow-scripts allow-forms"
+            title={title}
+            className="inline-flex h-full w-full border-0 bg-white"
+          />
+        ) : (
+          <webview
+            ref={webviewRef}
+            data-testid="interactive-html-webview"
+            src={src}
+            partition={HTML_ARTIFACT_PREVIEW_PARTITION}
+            aria-label={title}
+            className="inline-flex h-full w-full bg-white"
+          />
+        )}
       </div>
     </div>
   )

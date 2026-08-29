@@ -70,6 +70,19 @@ describe('HtmlPreviewFrame', () => {
     expect(iframe?.getAttribute('srcdoc')).toContain("default-src 'none'")
   })
 
+  it('removes scripts from restricted srcdoc before the browser parses it', () => {
+    render(
+      <HtmlPreviewFrame
+        html="<main>Preview</main><script>window.parent.api.file.read('/secret')</script>"
+        title="common.html_preview"
+      />
+    )
+
+    const iframe = screen.getByTitle('common.html_preview')
+    expect(iframe.getAttribute('srcdoc')).toContain('<main>Preview</main>')
+    expect(iframe.getAttribute('srcdoc')).not.toContain('<script')
+  })
+
   it('injects a Content-Security-Policy meta into the head for untrusted previews', () => {
     const result = injectHtmlPreviewCsp(
       '<html><head><title>x</title></head><body>hi</body></html>',

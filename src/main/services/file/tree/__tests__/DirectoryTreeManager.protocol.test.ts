@@ -143,6 +143,29 @@ describe('DirectoryTreeManager protocol', () => {
       expect(sender.sentMutations[0].revision).toBe(created.revision + 1)
     })
 
+    it('streams mutations to an authenticated remote owner', async () => {
+      const sent: TreeMutationPushPayload[] = []
+      const created = await manager.createRemote(
+        'client-1',
+        (payload) => sent.push(payload),
+        () => false,
+        '/ws',
+        undefined
+      )
+
+      builder.emit(addedEvent('queued.md'))
+      expect(sent).toEqual([])
+      expect(manager.activateRemoteTree(created.treeId, created.revision, 'client-2')).toBe(false)
+      expect(manager.activateRemoteTree(created.treeId, created.revision, 'client-1')).toBe(true)
+      expect(sent.map((payload) => payload.event)).toEqual([addedEvent('queued.md')])
+
+      builder.emit(addedEvent('live.md'))
+      expect(sent.map((payload) => payload.event)).toEqual([addedEvent('queued.md'), addedEvent('live.md')])
+
+      manager.disposeAllForRemoteClient('client-1')
+      expect(builder.listenerCount()).toBe(0)
+    })
+
     it('refuses activation against a revision other than the snapshot baseline', async () => {
       const sender = makeSender(1)
       const created = await create(sender)

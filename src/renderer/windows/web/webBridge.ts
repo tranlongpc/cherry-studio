@@ -349,7 +349,8 @@ export function installWebBridge(): void {
         if (route === 'ai.stream.detach') {
           return unsubscribeTopic(input.topicId).then(() => ({ ok: true, data: undefined }))
         }
-        return request('/web/api/ipc', { route, input })
+        const remoteRequest = () => request('/web/api/ipc', { route, input, clientId: eventClientId })
+        return route.startsWith('file.tree.') ? ensureEventStream().then(remoteRequest) : remoteRequest()
       },
       on: (event: string, callback: (payload: unknown) => void) => {
         const listeners = eventListeners.get(event) ?? new Set()

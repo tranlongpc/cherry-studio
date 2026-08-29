@@ -1,4 +1,5 @@
 import { ipcApi } from '@renderer/ipc'
+import { AbsoluteFilePathSchema } from '@shared/types/file'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { authenticateWebCredentials, clearWebSession, installWebBridge } from '../webBridge'
@@ -139,6 +140,37 @@ describe('webBridge', () => {
       expect.stringContaining('/web/api/events'),
       '/web/api/stream/open'
     ])
+  })
+
+  it('connects the event stream before creating a remote directory tree', async () => {
+    await authenticate()
+    const events = eventStreamResponse()
+    const fetchSpy = vi
+      .spyOn(window, 'fetch')
+      .mockResolvedValueOnce(events.response)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: {
+              treeId: 'tree-1',
+              revision: 0,
+              snapshot: { kind: 'directory', path: '/managed/Agents', basename: 'Agents', children: {} }
+            }
+          }),
+          { status: 200 }
+        )
+      )
+
+    await ipcApi.request('file.tree.create', { rootPath: AbsoluteFilePathSchema.parse('/managed/Agents') })
+
+    const eventClientId = (fetchSpy.mock.calls[0][1]?.headers as Record<string, string>)['x-cherry-web-client-id']
+    expect(fetchSpy.mock.calls[1][0]).toBe('/web/api/ipc')
+    expect(JSON.parse(String(fetchSpy.mock.calls[1][1]?.body))).toEqual({
+      route: 'file.tree.create',
+      input: { rootPath: '/managed/Agents' },
+      clientId: eventClientId
+    })
   })
 
   it('opens a browser picker and uploads the selected file', async () => {

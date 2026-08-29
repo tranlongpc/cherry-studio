@@ -1,4 +1,5 @@
 /* eslint-disable @eslint-react/dom/no-missing-iframe-sandbox -- sandbox is always supplied via the (defaulted) prop; the rule can't statically resolve the dynamic value. */
+import { stripScriptElements } from '@renderer/utils/htmlArtifact'
 import { Parser } from 'htmlparser2'
 import { memo, type Ref } from 'react'
 
@@ -103,7 +104,8 @@ export const HtmlPreviewFrame = memo<HtmlPreviewFrameProps>(
     // CSP follows the sandbox tier: restricted frames get the strict CSP, interactive
     // sandboxes keep full network access unless the caller overrides.
     const effectiveCsp = csp ?? (sandbox === HTML_PREVIEW_RESTRICTED_SANDBOX ? HTML_PREVIEW_RESTRICTED_CSP : undefined)
-    const withBase = injectHtmlPreviewBase(html, baseUrl)
+    const previewHtml = sandbox.split(/\s+/).includes('allow-scripts') ? html : stripScriptElements(html)
+    const withBase = injectHtmlPreviewBase(previewHtml, baseUrl)
     const srcDoc = effectiveCsp ? injectHtmlPreviewCsp(withBase, effectiveCsp) : withBase
     return (
       <div className="h-full w-full overflow-hidden bg-white">

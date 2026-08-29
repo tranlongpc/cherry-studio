@@ -103,8 +103,7 @@ type SharedBuilder =
 
 interface Consumer {
   readonly treeId: string
-  readonly webContentsId: number
-  readonly sender: WebContents
+  readonly owner: TreeConsumerOwner
   /** Subscription returned by `builder.onMutation()` — disposed when this consumer leaves. */
   forwardSubscription: Disposable | null
   /** Stable builder reference for forwarding pushes / rename. */
@@ -120,6 +119,13 @@ interface Consumer {
   readonly pendingMutations: TreeMutationPushPayload[]
 }
 
+interface TreeConsumerOwner {
+  readonly key: string
+  readonly label: string
+  isDestroyed(): boolean
+  send(payload: TreeMutationPushPayload): void
+}
+
 // Delimiter that cannot appear unescaped in any JSON.stringify output —
 // the NUL control character is always emitted as an escape sequence by
 // JSON, keeping the (path, options) boundary in builderKey unambiguous.
@@ -131,8 +137,21 @@ const BUILDER_KEY_DELIMITER = String.fromCharCode(0)
  * `WebContents` rather than a WindowId (wire-identical to `IpcApiService.send`),
  * so a tree only reaches the window that created it.
  */
-function sendMutation(sender: WebContents, payload: TreeMutationPushPayload): void {
-  sender.send(IpcChannel.IpcApi_Event, 'file.tree.mutation', payload)
+function webContentsOwner(sender: WebContents): TreeConsumerOwner {
+  return {
+    key: `window:${sender.id}`,
+    label: `webContents ${sender.id}`,
+    isDestroyed: () => sender.isDestroyed(),
+    send: (payload) => sender.send(IpcChannel.IpcApi_Event, 'file.tree.mutation', payload)
+  }
+}
+
+function remoteOwner(
+  clientId: string,
+  send: (payload: TreeMutationPushPayload) => void,
+  isDestroyed: () => boolean
+): TreeConsumerOwner {
+  return { key: `remote:${clientId}`, label: `remote client ${clientId}`, isDestroyed, send }
 }
 
 function builderKey(rootPath: string, options: DirectoryTreeOptions | undefined): string {
@@ -175,8 +194,8 @@ export class DirectoryTreeManager extends BaseService {
   /** `(rootPath, options)` → in-flight create promise, so concurrent
    *  `file.tree.create` calls dedupe at builder-creation time. */
   private readonly inflight = new Map<string, Promise<SharedBuilder>>()
-  /** webContentsId → set of treeIds, so we can drop them on contents-destroyed. */
-  private readonly byWebContents = new Map<number, Set<string>>()
+  private readonly byOwner = new Map<string, Set<string>>()
+  private readonly trackedWebContents = new Set<number>()
   /**
    * Set by `onStop()` (and the `disposeAll()` test seam) to short-circuit
    * any builder that finishes its asynchronous `createDirectoryTree` call
@@ -211,7 +230,15 @@ export class DirectoryTreeManager extends BaseService {
    *     consistent).
    */
   rename(treeId: string, oldPath: string, newName: string, ownerWebContentsId: number): boolean {
-    const consumer = this.ownedConsumer(treeId, ownerWebContentsId)
+    return this.renameOwned(treeId, oldPath, newName, `window:${ownerWebContentsId}`)
+  }
+
+  renameRemote(treeId: string, oldPath: string, newName: string, clientId: string): boolean {
+    return this.renameOwned(treeId, oldPath, newName, `remote:${clientId}`)
+  }
+
+  private renameOwned(treeId: string, oldPath: string, newName: string, ownerKey: string): boolean {
+    const consumer = this.ownedConsumer(treeId, ownerKey)
     if (!consumer) return false
     // Same normalization the builder applies, so a Windows-spelled oldPath
     // resolves against the same parent the builder indexed it under.
@@ -225,14 +252,22 @@ export class DirectoryTreeManager extends BaseService {
    * so installing the renderer listener never races live forwarding.
    */
   activateTree(treeId: string, revision: number, ownerWebContentsId: number): boolean {
-    const consumer = this.ownedConsumer(treeId, ownerWebContentsId)
+    return this.activateOwnedTree(treeId, revision, `window:${ownerWebContentsId}`)
+  }
+
+  activateRemoteTree(treeId: string, revision: number, clientId: string): boolean {
+    return this.activateOwnedTree(treeId, revision, `remote:${clientId}`)
+  }
+
+  private activateOwnedTree(treeId: string, revision: number, ownerKey: string): boolean {
+    const consumer = this.ownedConsumer(treeId, ownerKey)
     if (!consumer || revision !== consumer.snapshotRevision) return false
     if (consumer.phase === 'active') return true
-    if (consumer.sender.isDestroyed()) return false
+    if (consumer.owner.isDestroyed()) return false
 
     consumer.phase = 'active'
     for (const payload of consumer.pendingMutations) {
-      sendMutation(consumer.sender, payload)
+      consumer.owner.send(payload)
     }
     consumer.pendingMutations.length = 0
     return true
@@ -246,6 +281,26 @@ export class DirectoryTreeManager extends BaseService {
    */
   async create(
     sender: WebContents,
+    rootPath: string,
+    options: DirectoryTreeOptions | undefined
+  ): Promise<CreateTreeIpcResult> {
+    const result = await this.createForOwner(webContentsOwner(sender), rootPath, options)
+    this.trackWebContents(sender)
+    return result
+  }
+
+  createRemote(
+    clientId: string,
+    send: (payload: TreeMutationPushPayload) => void,
+    isDestroyed: () => boolean,
+    rootPath: string,
+    options: DirectoryTreeOptions | undefined
+  ): Promise<CreateTreeIpcResult> {
+    return this.createForOwner(remoteOwner(clientId, send, isDestroyed), rootPath, options)
+  }
+
+  private async createForOwner(
+    owner: TreeConsumerOwner,
     rootPath: string,
     options: DirectoryTreeOptions | undefined
   ): Promise<CreateTreeIpcResult> {
@@ -269,8 +324,7 @@ export class DirectoryTreeManager extends BaseService {
     const snapshotRevision = 0
     const consumer: Consumer = {
       treeId,
-      webContentsId: sender.id,
-      sender,
+      owner,
       forwardSubscription: null,
       builder: shared.builder,
       sharedBuilderKey: shared.key,
@@ -280,7 +334,7 @@ export class DirectoryTreeManager extends BaseService {
       pendingMutations: []
     }
     consumer.forwardSubscription = shared.builder.onMutation((event) => {
-      if (sender.isDestroyed()) return
+      if (owner.isDestroyed()) return
       const payload: TreeMutationPushPayload = { treeId, revision: ++consumer.revision, event }
       if (consumer.phase === 'pending') {
         if (consumer.pendingMutations.length >= MAX_PENDING_MUTATIONS) {
@@ -293,7 +347,7 @@ export class DirectoryTreeManager extends BaseService {
         consumer.pendingMutations.push(payload)
         return
       }
-      sendMutation(sender, payload)
+      owner.send(payload)
     })
     shared.consumers.set(treeId, consumer)
     this.consumers.set(treeId, consumer)
@@ -304,25 +358,15 @@ export class DirectoryTreeManager extends BaseService {
     // until app shutdown. Reconcile against the current state instead. Registering
     // first and disposing lets the normal refcount + grace-window path release the
     // builder rather than stranding a freshly-created one with zero consumers.
-    if (sender.isDestroyed()) {
+    if (owner.isDestroyed()) {
       this.dispose(treeId)
-      throw new Error(`Directory tree owner (webContents ${consumer.webContentsId}) was destroyed during creation`)
+      throw new Error(`Directory tree owner (${owner.label}) was destroyed during creation`)
     }
 
-    let bucket = this.byWebContents.get(sender.id)
+    let bucket = this.byOwner.get(owner.key)
     if (!bucket) {
       bucket = new Set()
-      this.byWebContents.set(sender.id, bucket)
-      // Track the listener so onStop's _cleanupDisposables can `.off` it
-      // even when the renderer never gets destroyed. Without this the
-      // closure holds `this` alive through the EventEmitter slot for the
-      // lifetime of the webContents, which can outlast the manager.
-      const handler = (): void => this.disposeAllForWebContents(sender.id)
-      sender.once('destroyed', handler)
-      this.registerDisposable(() => {
-        if (sender.isDestroyed()) return
-        sender.off('destroyed', handler)
-      })
+      this.byOwner.set(owner.key, bucket)
     }
     bucket.add(treeId)
 
@@ -337,7 +381,17 @@ export class DirectoryTreeManager extends BaseService {
    */
   dispose(treeId: string, ownerWebContentsId?: number): boolean {
     const consumer =
-      ownerWebContentsId === undefined ? this.consumers.get(treeId) : this.ownedConsumer(treeId, ownerWebContentsId)
+      ownerWebContentsId === undefined
+        ? this.consumers.get(treeId)
+        : this.ownedConsumer(treeId, `window:${ownerWebContentsId}`)
+    return this.disposeConsumer(treeId, consumer)
+  }
+
+  disposeRemote(treeId: string, clientId: string): boolean {
+    return this.disposeConsumer(treeId, this.ownedConsumer(treeId, `remote:${clientId}`))
+  }
+
+  private disposeConsumer(treeId: string, consumer: Consumer | undefined): boolean {
     if (!consumer) return false
     consumer.forwardSubscription?.dispose()
     this.consumers.delete(treeId)
@@ -345,9 +399,9 @@ export class DirectoryTreeManager extends BaseService {
     if (!shared) return true
     shared.consumers.delete(treeId)
 
-    const bucket = this.byWebContents.get(consumer.webContentsId)
+    const bucket = this.byOwner.get(consumer.owner.key)
     bucket?.delete(treeId)
-    if (bucket && bucket.size === 0) this.byWebContents.delete(consumer.webContentsId)
+    if (bucket && bucket.size === 0) this.byOwner.delete(consumer.owner.key)
 
     if (shared.consumers.size === 0 && shared.state === 'active') {
       this.transitionToDraining(shared)
@@ -356,7 +410,15 @@ export class DirectoryTreeManager extends BaseService {
   }
 
   disposeAllForWebContents(webContentsId: number): void {
-    const bucket = this.byWebContents.get(webContentsId)
+    this.disposeAllForOwner(`window:${webContentsId}`)
+  }
+
+  disposeAllForRemoteClient(clientId: string): void {
+    this.disposeAllForOwner(`remote:${clientId}`)
+  }
+
+  private disposeAllForOwner(ownerKey: string): void {
+    const bucket = this.byOwner.get(ownerKey)
     if (!bucket) return
     const ids = Array.from(bucket)
     for (const id of ids) {
@@ -404,10 +466,24 @@ export class DirectoryTreeManager extends BaseService {
    * without this a renderer that learned another window's id could flush its buffer
    * before it listens, dispose it, or mutate its mirror.
    */
-  private ownedConsumer(treeId: string, ownerWebContentsId: number): Consumer | undefined {
+  private ownedConsumer(treeId: string, ownerKey: string): Consumer | undefined {
     const consumer = this.consumers.get(treeId)
-    if (!consumer || consumer.webContentsId !== ownerWebContentsId) return undefined
+    if (!consumer || consumer.owner.key !== ownerKey) return undefined
     return consumer
+  }
+
+  private trackWebContents(sender: WebContents): void {
+    if (this.trackedWebContents.has(sender.id)) return
+    this.trackedWebContents.add(sender.id)
+    const handler = (): void => {
+      this.disposeAllForWebContents(sender.id)
+      this.trackedWebContents.delete(sender.id)
+    }
+    sender.once('destroyed', handler)
+    this.registerDisposable(() => {
+      this.trackedWebContents.delete(sender.id)
+      if (!sender.isDestroyed()) sender.off('destroyed', handler)
+    })
   }
 
   private async acquireBuilder(

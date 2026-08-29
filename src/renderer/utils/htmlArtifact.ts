@@ -124,3 +124,13 @@ export function stripMetaRefresh(html: string): string {
   }
   return DomUtils.getOuterHTML(document)
 }
+
+export function stripScriptElements(html: string): string {
+  if (!/<script[\s/>]/i.test(html)) return html
+
+  const document = parseDocument(html)
+  for (const script of DomUtils.findAll((element) => element.name === 'script', document.children)) {
+    DomUtils.removeElement(script)
+  }
+  return DomUtils.getOuterHTML(document)
+}

@@ -11,8 +11,11 @@ import type { CacheSyncMessage } from '@shared/data/cache/cacheTypes'
 import type { UnifiedPreferenceKeyType, UnifiedPreferenceType } from '@shared/data/preference/preferenceTypes'
 import { FileEntryIdSchema } from '@shared/data/types/file'
 import type { FileMetadata } from '@shared/data/types/legacyFile'
+import { IpcError } from '@shared/ipc/errors/IpcError'
+import { fileRequestSchemas } from '@shared/ipc/schemas/file'
 import { createInternalEntryInputSchema } from '@shared/ipc/schemas/file'
 import { FILE_TYPE, type FileType } from '@shared/types/file'
+import type { TreeMutationPushPayload } from '@shared/utils/file'
 import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/utils/file'
 import { Elysia } from 'elysia'
 
@@ -93,6 +96,7 @@ const REMOTE_IPC_ROUTES = [
   'ai.text.generate',
   'ai.tool.get_result',
   'app.get_info',
+  'binary.get_tool_snapshots',
   'file.get_metadata',
   'knowledge.create_base',
   'system.get_ip_country'
@@ -177,6 +181,15 @@ interface WebEventClient {
   listeners: Map<string, WebStreamListener>
 }
 
+type RemoteFileTreeRoute = 'file.tree.activate' | 'file.tree.create' | 'file.tree.dispose' | 'file.tree.rename'
+
+const REMOTE_FILE_TREE_ROUTES = new Set<RemoteFileTreeRoute>([
+  'file.tree.activate',
+  'file.tree.create',
+  'file.tree.dispose',
+  'file.tree.rename'
+])
+
 const webEventClients = new Map<string, WebEventClient>()
 const encoder = new TextEncoder()
 
@@ -198,7 +211,57 @@ function closeEventClient(clientId: string): void {
     listener.close()
     application.get('AiStreamManager').detachListener(topicId, listener.id)
   }
+  application.get('DirectoryTreeManager').disposeAllForRemoteClient(clientId)
   webEventClients.delete(clientId)
+}
+
+function remoteTreePath(candidate: string): string {
+  const root = resolve(application.getPath('app.userdata.data'))
+  const target = resolve(candidate)
+  if (target !== root && !target.startsWith(`${root}${sep}`)) throw new Error('Tree path is outside managed storage')
+  return target
+}
+
+function sendRemoteTreeMutation(clientId: string, payload: TreeMutationPushPayload): void {
+  const client = webEventClients.get(clientId)
+  if (!client) return
+  client.controller.enqueue(
+    encoder.encode(`${JSON.stringify({ type: 'event', data: { event: 'file.tree.mutation', payload } })}\n`)
+  )
+}
+
+async function dispatchRemoteFileTree(route: RemoteFileTreeRoute, input: unknown, clientId: string) {
+  try {
+    if (!webEventClients.has(clientId)) throw new Error('Event stream is not connected')
+    const manager = application.get('DirectoryTreeManager')
+    if (route === 'file.tree.create') {
+      const parsed = fileRequestSchemas[route].input.parse(input)
+      const data = await manager.createRemote(
+        clientId,
+        (payload) => sendRemoteTreeMutation(clientId, payload),
+        () => !webEventClients.has(clientId),
+        remoteTreePath(parsed.rootPath),
+        parsed.options
+      )
+      return { ok: true, data }
+    }
+    if (route === 'file.tree.activate') {
+      const parsed = fileRequestSchemas[route].input.parse(input)
+      return { ok: true, data: manager.activateRemoteTree(parsed.treeId, parsed.revision, clientId) }
+    }
+    if (route === 'file.tree.rename') {
+      const parsed = fileRequestSchemas[route].input.parse(input)
+      return {
+        ok: true,
+        data: manager.renameRemote(parsed.treeId, remoteTreePath(parsed.oldPath), parsed.newName, clientId)
+      }
+    }
+    const parsed = fileRequestSchemas[route].input.parse(input)
+    manager.disposeRemote(parsed.treeId, clientId)
+    return { ok: true, data: undefined }
+  } catch (error) {
+    return { ok: false, error: IpcError.from(error).toJSON() }
+  }
 }
 
 export const webRoutes = new Elysia()
@@ -386,7 +449,10 @@ export const webRoutes = new Elysia()
     async ({ body, request: httpRequest, set }) => {
       const failure = authorize(httpRequest, set)
       if (failure) return failure
-      const request = body as { route: string; input: unknown }
+      const request = body as { route: string; input: unknown; clientId?: string }
+      if (REMOTE_FILE_TREE_ROUTES.has(request.route as RemoteFileTreeRoute)) {
+        return dispatchRemoteFileTree(request.route as RemoteFileTreeRoute, request.input, request.clientId ?? '')
+      }
       if (!isRemoteIpcRoute(request.route)) {
         set.status = 403
         return { error: 'Route is not available to remote clients' }
