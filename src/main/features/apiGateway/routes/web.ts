@@ -236,7 +236,8 @@ function managedReadPath(candidate: string): string {
   const roots = [
     application.getPath('feature.files.data'),
     application.getPath('feature.notes.data'),
-    application.getPath('feature.knowledgebase.data')
+    application.getPath('feature.knowledgebase.data'),
+    ...agentWorkspaceService.list({ includeSystem: true }).map((workspace) => workspace.path)
   ].map((path) => resolve(path))
   if (!roots.some((root) => isPathWithinRoot(target, root))) {
     throw new Error('File path is outside managed storage')

@@ -692,6 +692,37 @@ describe('API gateway routes (integration)', () => {
         await rm(knowledgeRoot, { recursive: true, force: true })
       }
     })
+
+    it('reads files from registered agent workspaces', async () => {
+      const workspaceRoot = await mkdtemp(join(tmpdir(), 'cherry-web-workspace-'))
+      const workbookPath = join(workspaceRoot, 'table.xlsx')
+      await writeFile(workbookPath, new Uint8Array([80, 75, 3, 4]))
+      mockAgentWorkspaceList.mockReturnValueOnce([
+        {
+          id: 'workspace-2',
+          name: 'agent-workspace',
+          path: workspaceRoot,
+          type: 'user',
+          orderKey: 'a1',
+          createdAt: '2026-08-30T00:00:00.000Z',
+          updatedAt: '2026-08-30T00:00:00.000Z'
+        }
+      ])
+
+      try {
+        const { status, body } = await read(
+          await webPost('/web/api/file', {
+            action: 'readManaged',
+            filePath: workbookPath
+          })
+        )
+
+        expect(status).toBe(200)
+        expect(body).toEqual({ data: [80, 75, 3, 4] })
+      } finally {
+        await rm(workspaceRoot, { recursive: true, force: true })
+      }
+    })
   })
 
   describe('OpenAPI docs — per-language translation + switcher', () => {
