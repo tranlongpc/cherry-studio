@@ -1,6 +1,6 @@
 import { isWeb } from '@renderer/utils/platform'
 import type { AbsoluteFilePath } from '@shared/types/file'
-import { canonicalizeFilePath, createFilePathHandle, toFileUrl } from '@shared/utils/file'
+import { canonicalizeFilePath, createFilePathHandle, fileUrlToPath, toFileUrl, toSafeFileUrl } from '@shared/utils/file'
 
 export const FILE_PREVIEW_ROUTE = '/app/file-preview'
 export const FILE_PREVIEW_REFRESH_KEY = 'filePreviewRefreshKey'
@@ -40,6 +40,13 @@ export function getFilePreviewExtension(filePath: string): string | null {
 export function getFilePreviewResourceUrl(filePath: string, refreshKey: number): string {
   if (!isWeb) return toFileUrl(normalizeFilePreviewPath(filePath))
   const search = new URLSearchParams({ path: normalizeFilePreviewPath(filePath), v: String(refreshKey) })
+  return `/web/api/file-content?${search.toString()}`
+}
+
+export function getManagedFileResourceUrl(filePath: string, extension: string | null, refreshKey = 0): string {
+  const fileUrl = toSafeFileUrl(normalizeFilePreviewPath(filePath), extension)
+  if (!isWeb) return fileUrl
+  const search = new URLSearchParams({ path: fileUrlToPath(fileUrl), v: String(refreshKey) })
   return `/web/api/file-content?${search.toString()}`
 }
 

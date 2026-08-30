@@ -1,6 +1,6 @@
 import Spinner from '@renderer/components/Spinner'
 import type { McpToolResponse, NormalToolResponse } from '@renderer/types/mcpTool'
-import { toSafeFileUrl } from '@shared/utils/file'
+import { getManagedFileResourceUrl } from '@renderer/utils/filePreview'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -43,7 +43,7 @@ function useGeneratedImageUrls(ids: string[]): { urls: string[]; failed: boolean
     void Promise.all(
       list.map(async (id) => {
         try {
-          return toSafeFileUrl(await window.api.file.getPhysicalPath({ id }), null)
+          return getManagedFileResourceUrl(await window.api.file.getPhysicalPath({ id }), null)
         } catch {
           return null
         }

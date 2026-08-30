@@ -1,8 +1,9 @@
 import { loggerService } from '@logger'
 import { FILE_TYPE } from '@renderer/types/file'
+import { getManagedFileResourceUrl } from '@renderer/utils/filePreview'
 import type { ComposerAttachment } from '@renderer/utils/message/composerAttachment'
 import { AbsoluteFilePathSchema } from '@shared/types/file'
-import { fileUrlToPath, toSafeFileUrl } from '@shared/utils/file'
+import { fileUrlToPath } from '@shared/utils/file'
 import { File, FileCode2, FileImage, FileJson, FileSpreadsheet, FileText, FileType2, Presentation } from 'lucide-react'
 import type { ComponentType, ReactNode } from 'react'
 
@@ -137,7 +138,7 @@ function getFilePreviewUrl(file: ComposerAttachment | undefined, fallbackLabel: 
         }
         return undefined
       }
-      return toSafeFileUrl(parsedPath.data, extension || null)
+      return getManagedFileResourceUrl(parsedPath.data, extension || null)
     } catch {
       return undefined
     }
@@ -151,7 +152,7 @@ function getFilePreviewUrl(file: ComposerAttachment | undefined, fallbackLabel: 
     }
     return undefined
   }
-  return toSafeFileUrl(parsedPath.data, extension || null)
+  return getManagedFileResourceUrl(parsedPath.data, extension || null)
 }
 
 function getFileTokenVariant(file: ComposerAttachment | undefined, fallbackLabel: string): FileTokenVariant {

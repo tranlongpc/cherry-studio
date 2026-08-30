@@ -19,14 +19,14 @@ import { FilePreview } from '@renderer/components/FilePreview'
 import { ipcApi } from '@renderer/ipc'
 import { ImagePreviewService } from '@renderer/services/ImagePreviewService'
 import { toast } from '@renderer/services/toast'
-import { normalizeFilePreviewPath } from '@renderer/utils/filePreview'
+import { getManagedFileResourceUrl, normalizeFilePreviewPath } from '@renderer/utils/filePreview'
 import { isMac, isWeb } from '@renderer/utils/platform'
 import type { FileEntry, FileEntryId } from '@shared/data/types/file'
 import { FileEntryIdSchema } from '@shared/data/types/file'
 import type { OutputFor } from '@shared/ipc/types'
 import type { AbsoluteFilePath, FileType } from '@shared/types/file'
 import { AbsoluteFilePathSchema } from '@shared/types/file'
-import { createFileEntryHandle, getFileTypeByExt, toSafeFileUrl } from '@shared/utils/file'
+import { createFileEntryHandle, getFileTypeByExt } from '@shared/utils/file'
 import { ArrowLeft, MoreHorizontal, Trash2, Upload } from 'lucide-react'
 import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -227,7 +227,7 @@ function toFileItem(
       ...base,
       ...originFields,
       type,
-      previewUrl: physicalPath ? toSafeFileUrl(physicalPath, entry.ext) : undefined
+      previewUrl: physicalPath ? getManagedFileResourceUrl(physicalPath, entry.ext) : undefined
     }
   }
 
@@ -569,11 +569,13 @@ function FilesPage() {
           if (!filePath) throw new Error(`Physical path is unavailable for file ${file.id}`)
           const normalizedPath = normalizeFilePreviewPath(filePath)
           if (file.type === 'image') {
-            void ImagePreviewService.show(toSafeFileUrl(normalizedPath, file.format)).catch((error: unknown) => {
-              const normalized = error instanceof Error ? error : new Error(String(error))
-              logger.error('Failed to open image preview', normalized)
-              toast.error(t('files.preview.error'))
-            })
+            void ImagePreviewService.show(getManagedFileResourceUrl(normalizedPath, file.format)).catch(
+              (error: unknown) => {
+                const normalized = error instanceof Error ? error : new Error(String(error))
+                logger.error('Failed to open image preview', normalized)
+                toast.error(t('files.preview.error'))
+              }
+            )
             return
           }
           setEmbeddedPreview((current) => ({

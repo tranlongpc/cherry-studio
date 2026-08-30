@@ -1,7 +1,7 @@
 import { loggerService } from '@logger'
 import type { FileMetadata } from '@renderer/types/file'
-import { AbsoluteFilePathSchema, type FileUrlString } from '@shared/types/file'
-import { toSafeFileUrl } from '@shared/utils/file'
+import { getManagedFileResourceUrl } from '@renderer/utils/filePreview'
+import { AbsoluteFilePathSchema } from '@shared/types/file'
 
 const logger = loggerService.withContext('paintingFileUrl')
 
@@ -16,7 +16,7 @@ type PaintingFileUrlSource = Pick<FileMetadata, 'path' | 'ext'>
  * carries v1 `FileMetadata`. The path itself is resolved by main process via
  * `getPhysicalPath`; renderer only applies shared file-url formatting/safety.
  */
-export function getPaintingFileUrl(file: PaintingFileUrlSource): FileUrlString | undefined {
+export function getPaintingFileUrl(file: PaintingFileUrlSource): string | undefined {
   if (!file.path) return undefined
   const parsedPath = AbsoluteFilePathSchema.safeParse(file.path)
   if (!parsedPath.success) {
@@ -26,5 +26,5 @@ export function getPaintingFileUrl(file: PaintingFileUrlSource): FileUrlString |
     }
     return undefined
   }
-  return toSafeFileUrl(parsedPath.data, file.ext || null)
+  return getManagedFileResourceUrl(parsedPath.data, file.ext || null)
 }

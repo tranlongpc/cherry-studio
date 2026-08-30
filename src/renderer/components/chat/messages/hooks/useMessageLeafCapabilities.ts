@@ -11,10 +11,11 @@ import type { FileMetadata } from '@renderer/types/file'
 import type { McpTool } from '@renderer/types/tool'
 import { parseFileTypes } from '@renderer/utils/file'
 import { safeOpen } from '@renderer/utils/file/safeOpen'
+import { getManagedFileResourceUrl } from '@renderer/utils/filePreview'
 import type { FileHandle } from '@shared/data/types/file'
 import type { CherryMessagePart } from '@shared/data/types/message'
 import { AbsoluteFilePathSchema } from '@shared/types/file'
-import { createFileEntryHandle, createFilePathHandle, toSafeFileUrl } from '@shared/utils/file'
+import { createFileEntryHandle, createFilePathHandle } from '@shared/utils/file'
 import dayjs from 'dayjs'
 import type { TFunction } from 'i18next'
 import { useCallback, useMemo } from 'react'
@@ -163,7 +164,7 @@ export function useMessageLeafCapabilities({
       }
       return {
         displayName: formatMessageAttachmentFileName(file, t),
-        previewUrl: parsedPath?.success ? toSafeFileUrl(parsedPath.data, file.ext || null) : undefined
+        previewUrl: parsedPath?.success ? getManagedFileResourceUrl(parsedPath.data, file.ext || null) : undefined
       }
     },
     [t]

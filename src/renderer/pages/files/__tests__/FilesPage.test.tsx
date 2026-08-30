@@ -1444,6 +1444,29 @@ describe('FilesPage file operations', () => {
     expect(screen.getByDisplayValue('photo.png')).toBeInTheDocument()
   })
 
+  it('uses authenticated browser resource URLs for image thumbnails and previews on web', async () => {
+    platformState.isWeb = true
+    ipcMocks.request.mockImplementation((route: string, input?: unknown) => {
+      if (route === 'file.batch_get_metadata') return Promise.resolve({})
+      if (route === 'file.batch_get_physical_paths') return Promise.resolve({ [imageEntry.id]: '/tmp/photo.png' })
+      if (route === 'file.batch_get_dangling_states') return Promise.resolve({})
+      return Promise.resolve(input)
+    })
+    renderFilesPage([imageEntry])
+
+    fireEvent.click(screen.getByText('files.image'))
+
+    const image = await screen.findByAltText('photo.png')
+    const resourceUrl = '/web/api/file-content?path=%2Ftmp%2Fphoto.png&v=0'
+    expect(image).toHaveAttribute('src', resourceUrl)
+
+    fireEvent.click(image)
+
+    await waitFor(() => {
+      expect(imagePreviewMocks.show).toHaveBeenCalledWith(resourceUrl)
+    })
+  })
+
   it('opens the shared image preview when clicking an image in the image grid', async () => {
     ipcMocks.request.mockImplementation((route: string, input?: unknown) => {
       if (route === 'file.batch_get_metadata') return Promise.resolve({})

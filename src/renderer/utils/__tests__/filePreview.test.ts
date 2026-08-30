@@ -14,6 +14,7 @@ import {
   getFilePreviewFileName,
   getFilePreviewRefreshKey,
   getFilePreviewResourceUrl,
+  getManagedFileResourceUrl,
   normalizeFilePreviewPath,
   parseFilePreviewRouteSearch
 } from '../filePreview'
@@ -78,6 +79,18 @@ describe('file preview route target', () => {
     platformState.isWeb = true
     expect(getFilePreviewResourceUrl(filePath, 2)).toBe(
       '/web/api/file-content?path=%2FVolumes%2FData%2FFiles%2Fimage+%231.png&v=2'
+    )
+  })
+
+  it('uses authenticated browser URLs without weakening desktop file URL safety', () => {
+    expect(getManagedFileResourceUrl('/Volumes/Data/Files/image.png', 'png')).toBe(
+      'file:///Volumes/Data/Files/image.png'
+    )
+    expect(getManagedFileResourceUrl('/Volumes/Data/Files/payload.svg', 'svg')).toBe('file:///Volumes/Data/Files')
+
+    platformState.isWeb = true
+    expect(getManagedFileResourceUrl('/Volumes/Data/Files/image.png', 'png')).toBe(
+      '/web/api/file-content?path=%2FVolumes%2FData%2FFiles%2Fimage.png&v=0'
     )
   })
 

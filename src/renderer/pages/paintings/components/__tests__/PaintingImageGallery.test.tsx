@@ -1,3 +1,4 @@
+import type * as SharedFileUtils from '@shared/utils/file'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -19,7 +20,10 @@ vi.mock('@renderer/components/composer/ComposerToolRuntime', () => ({
   useComposerToolDispatch: () => ({ setFiles })
 }))
 
-vi.mock('@shared/utils/file', () => ({ toSafeFileUrl: (path: string) => `safe://${path}` }))
+vi.mock('@shared/utils/file', async (importOriginal) => ({
+  ...(await importOriginal<typeof SharedFileUtils>()),
+  toSafeFileUrl: (path: string) => `safe://${path}`
+}))
 
 vi.mock('@renderer/utils/message/composerAttachment', () => ({
   toComposerAttachments: (metas: { path: string; name: string }[]) =>

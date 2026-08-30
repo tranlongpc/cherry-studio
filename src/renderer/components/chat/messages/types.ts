@@ -23,7 +23,6 @@ import type {
 } from '@shared/data/types/message'
 import type { Model } from '@shared/data/types/model'
 import type { TranslateLanguage } from '@shared/data/types/translate'
-import type { FileUrlString } from '@shared/types/file'
 import type { ReactNode } from 'react'
 
 export type { MessageUiState } from '@renderer/types/message'
@@ -63,7 +62,7 @@ export interface MessageActivityState {
 
 export interface MessageFileView {
   displayName: string
-  previewUrl?: FileUrlString
+  previewUrl?: string
 }
 
 export interface MessageMenuExportOptions {

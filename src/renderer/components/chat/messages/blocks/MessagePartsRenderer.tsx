@@ -21,6 +21,7 @@ import { useIsActiveTurnTarget } from '@renderer/hooks/useIsActiveTurnTarget'
 import { useTopicStreamStatus } from '@renderer/hooks/useTopicStreamStatus'
 import { FILE_TYPE } from '@renderer/types/file'
 import type { Citation } from '@renderer/types/message'
+import { getFilePreviewExtension, getManagedFileResourceUrl } from '@renderer/utils/filePreview'
 import {
   type MessageCitations,
   resolveCitationMarkerParts,
@@ -39,6 +40,7 @@ import { classifyTurn } from '@shared/ai/transport'
 import type { CherryMessagePart, ContentReference, ReasoningUIPart } from '@shared/data/types/message'
 import type { CherryProviderMetadata, ComposerMessageSnapshot, ComposerMessageToken } from '@shared/data/types/uiParts'
 import { readCherryMeta } from '@shared/data/types/uiParts'
+import { fileUrlToPath } from '@shared/utils/file'
 import { getToolName, isDataUIPart, isFileUIPart, isToolUIPart } from 'ai'
 import { AnimatePresence, motion, type Variants } from 'motion/react'
 import React, { useMemo } from 'react'
@@ -193,8 +195,16 @@ function isImageFilePart(part: CherryMessagePart): boolean {
 /** Extract image URL from a file part. */
 function extractImageUrl(part: CherryMessagePart): string | undefined {
   if (part.type !== 'file' || !('url' in part)) return undefined
-  const filePart = part as { url?: string; mediaType?: string }
-  return filePart.url || undefined
+  const filePart = part as { url?: string; mediaType?: string; filename?: string }
+  const url = filePart.url
+  if (!url?.startsWith('file://')) return url || undefined
+
+  try {
+    const filePath = fileUrlToPath(new URL(url))
+    return getManagedFileResourceUrl(filePath, getFilePreviewExtension(filePart.filename || filePath))
+  } catch {
+    return undefined
+  }
 }
 
 /** Get video filePath from a data-video part. */
@@ -651,7 +661,7 @@ function renderPart(
     case 'file': {
       const filePart = part as { url?: string; mediaType?: string; filename?: string }
       if (filePart.mediaType?.startsWith('image/')) {
-        const url = filePart.url
+        const url = extractImageUrl(part)
         if (!url) return null
         return <ImageBlock key={partId} images={[url]} isSingle={true} />
       }

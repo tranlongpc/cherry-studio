@@ -1,3 +1,4 @@
+import type * as PlatformUtils from '@renderer/utils/platform'
 import { UpdateAgentSessionMessageSchema } from '@shared/data/api/schemas/agentSessionMessages'
 import type { CherryMessagePart } from '@shared/data/types/message'
 import { act, fireEvent, render, screen } from '@testing-library/react'
@@ -17,6 +18,7 @@ const mockReadText = vi.hoisted(() => vi.fn())
 const mockUsePlaceholderElapsedMs = vi.hoisted(() => vi.fn(() => 1000))
 const mockToolBlockGroupRender = vi.hoisted(() => vi.fn())
 const mockMessageToolsRender = vi.hoisted(() => vi.fn())
+const platformState = vi.hoisted(() => ({ isWeb: false }))
 
 type MainTextBlockModule = {
   buildUserMessagePreview: (content: string) => { content: string; isTruncated: boolean }
@@ -43,6 +45,12 @@ vi.mock('@renderer/hooks/useTopicStreamStatus', () => ({
 vi.mock('@renderer/types/file', () => ({
   COMPOSER_FILE_KIND: { PASTED_TEXT: 'pasted-text' },
   FILE_TYPE: { IMAGE: 'image', VIDEO: 'video', AUDIO: 'audio', TEXT: 'text', DOCUMENT: 'document', OTHER: 'other' }
+}))
+vi.mock('@renderer/utils/platform', async (importOriginal) => ({
+  ...(await importOriginal<typeof PlatformUtils>()),
+  get isWeb() {
+    return platformState.isWeb
+  }
 }))
 
 vi.mock('motion/react', () => {
@@ -480,6 +488,7 @@ function answeredAskUserQuestionPart(toolCallId: string, state = 'output-availab
 
 describe('MessagePartsRenderer', () => {
   beforeEach(() => {
+    platformState.isWeb = false
     mockIsActiveTurnTarget.mockReturnValue(false)
     mockTopicStreamState.status = undefined
     mockThinkingBlockMounted.mockClear()
@@ -784,6 +793,26 @@ describe('MessagePartsRenderer', () => {
       )
 
       expect(screen.getByTestId('mock-image-block')).toHaveAttribute('data-images', '["file:///tmp/photo.png"]')
+    })
+
+    it('renders stored message images through authenticated browser resource URLs on web', () => {
+      platformState.isWeb = true
+      renderParts(
+        [
+          {
+            type: 'file',
+            url: 'file:///Volumes/Data/Server/CherryStudio/Data/Files/photo.png',
+            mediaType: 'image/png',
+            filename: 'photo.png'
+          } as unknown as CherryMessagePart
+        ],
+        msg({ role: 'assistant' })
+      )
+
+      expect(screen.getByTestId('mock-image-block')).toHaveAttribute(
+        'data-images',
+        '["/web/api/file-content?path=%2FVolumes%2FData%2FServer%2FCherryStudio%2FData%2FFiles%2Fphoto.png&v=0"]'
+      )
     })
 
     it('renders non-image file attachments', () => {
