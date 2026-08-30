@@ -209,6 +209,18 @@ type PreferenceRequest =
   | { action: 'setMultiple'; updates: Partial<UnifiedPreferenceType> }
   | { action: 'getAll' }
 
+function remotePreferenceValue<K extends UnifiedPreferenceKeyType>(
+  key: K,
+  value: UnifiedPreferenceType[K]
+): UnifiedPreferenceType[K] {
+  return key === 'feature.notes.path' ? (application.getPath('feature.notes.data') as UnifiedPreferenceType[K]) : value
+}
+
+function remotePreferenceValues<T extends Partial<UnifiedPreferenceType>>(values: T): T {
+  if (!Object.hasOwn(values, 'feature.notes.path')) return values
+  return { ...values, 'feature.notes.path': application.getPath('feature.notes.data') }
+}
+
 type FileRequest =
   | { action: 'createInternalEntry'; params: unknown }
   | { action: 'getPhysicalPath'; id: string }
@@ -588,17 +600,17 @@ export const webRoutes = new Elysia()
       const preferences = application.get('PreferenceService')
       switch (request.action) {
         case 'get':
-          return { data: preferences.get(request.key) }
+          return { data: remotePreferenceValue(request.key, preferences.get(request.key)) }
         case 'set':
           await preferences.set(request.key, request.value as never)
           return { data: null }
         case 'getMultipleRaw':
-          return { data: preferences.getMultipleRaw(request.keys) }
+          return { data: remotePreferenceValues(preferences.getMultipleRaw(request.keys)) }
         case 'setMultiple':
           await preferences.setMultiple(request.updates)
           return { data: null }
         case 'getAll':
-          return { data: preferences.getAll() }
+          return { data: remotePreferenceValues(preferences.getAll()) }
       }
     },
     { detail: { hide: true } }

@@ -20,6 +20,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const {
   mockPreferenceGet,
   mockPreferenceGetAll,
+  mockPreferenceGetMultipleRaw,
   mockPreferenceSet,
   mockDataApiRequest,
   mockIpcApiRequest,
@@ -36,7 +37,8 @@ const {
   mockTreeRenameRemote
 } = vi.hoisted(() => ({
   mockPreferenceGet: vi.fn<(key: string) => unknown>(() => 'test-key'),
-  mockPreferenceGetAll: vi.fn(() => ({ 'app.language': 'en-US' })),
+  mockPreferenceGetAll: vi.fn<() => Record<string, unknown>>(() => ({ 'app.language': 'en-US' })),
+  mockPreferenceGetMultipleRaw: vi.fn<() => Record<string, unknown>>(() => ({})),
   mockPreferenceSet: vi.fn(async () => {}),
   mockDataApiRequest: vi.fn(async (request: unknown) => ({ id: 'request-1', status: 200, data: request })),
   mockIpcApiRequest: vi.fn(async (route: string, input: unknown) => ({ ok: true, data: { route, input } })),
@@ -66,7 +68,12 @@ const {
 vi.mock('@application', async () => {
   const { mockApplicationFactory } = await import('@test-mocks/main/application')
   const overrides = {
-    PreferenceService: { get: mockPreferenceGet, getAll: mockPreferenceGetAll, set: mockPreferenceSet },
+    PreferenceService: {
+      get: mockPreferenceGet,
+      getAll: mockPreferenceGetAll,
+      getMultipleRaw: mockPreferenceGetMultipleRaw,
+      set: mockPreferenceSet
+    },
     DataApiService: { getApiServer: () => ({ handleRequest: mockDataApiRequest }) },
     IpcApiService: { requestFromRemote: mockIpcApiRequest },
     FileManager: { createInternalEntry: mockCreateInternalEntry, getPhysicalPath: mockGetPhysicalPath },
@@ -502,6 +509,35 @@ describe('API gateway routes (integration)', () => {
       })
       expect(writeResult.status).toBe(200)
       expect(mockPreferenceSet).toHaveBeenCalledWith('app.language', 'vi-VN')
+    })
+
+    it('keeps the desktop notes path out of web preference reads', async () => {
+      mockPreferenceGet.mockReturnValueOnce('/Volumes/Data/Git/cherry-studio')
+      mockPreferenceGetMultipleRaw.mockReturnValueOnce({
+        'app.language': 'en-US',
+        'feature.notes.path': '/Volumes/Data/Git/cherry-studio'
+      })
+      mockPreferenceGetAll.mockReturnValueOnce({
+        'app.language': 'en-US',
+        'feature.notes.path': '/Volumes/Data/Git/cherry-studio'
+      })
+
+      const single = await read(await webPost('/web/api/preference', { action: 'get', key: 'feature.notes.path' }))
+      const multiple = await read(
+        await webPost('/web/api/preference', {
+          action: 'getMultipleRaw',
+          keys: ['app.language', 'feature.notes.path']
+        })
+      )
+      const all = await read(await webPost('/web/api/preference', { action: 'getAll' }))
+
+      expect(single.body).toEqual({ data: '/mock/feature.notes.data' })
+      expect(multiple.body).toEqual({
+        data: { 'app.language': 'en-US', 'feature.notes.path': '/mock/feature.notes.data' }
+      })
+      expect(all.body).toEqual({
+        data: { 'app.language': 'en-US', 'feature.notes.path': '/mock/feature.notes.data' }
+      })
     })
 
     it('stores uploaded browser files in Cherry-managed storage', async () => {

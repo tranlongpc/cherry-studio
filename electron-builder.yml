@@ -19,6 +19,7 @@ protocols:
       - cherrystudio
 files:
   - "**/*"
+  - "!dist/**"
   - "!**/{.vscode,.yarn,.yarn-lock,.github,.cursorrules,.prettierrc}"
   - "!electron.vite.config.{js,ts,mjs,cjs}}"
   - "!.*"
