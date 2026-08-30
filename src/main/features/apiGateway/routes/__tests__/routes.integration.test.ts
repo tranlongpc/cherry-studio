@@ -540,11 +540,33 @@ describe('API gateway routes (integration)', () => {
     })
 
     it.each([
+      ['web_search.search_keywords', { providerId: 'tavily', keywords: ['Cherry Studio'] }],
+      ['web_search.fetch_urls', { providerId: 'jina', urls: ['https://example.com'] }]
+    ])('allows the constrained web search provider check %s', async (route, input) => {
+      const { status } = await read(await webPost('/web/api/ipc', { route, input }))
+
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith(route, input)
+    })
+
+    it.each([
+      ['web_search.search_keywords', { providerId: 'tavily', keywords: ['private query'] }],
+      ['web_search.fetch_urls', { providerId: 'jina', urls: ['http://127.0.0.1'] }]
+    ])('keeps arbitrary remote web search input unavailable for %s', async (route, input) => {
+      const { status, body } = await read(await webPost('/web/api/ipc', { route, input }))
+
+      expect(status).toBe(403)
+      expect(body).toEqual({ error: 'Route is not available to remote clients' })
+      expect(mockIpcApiRequest).not.toHaveBeenCalled()
+    })
+
+    it.each([
       ['ai.agent.session.prewarm', { sessionId: 'session-1' }],
       ['ai.tool.respond_approval', { approvalId: 'approval-1', approved: true }],
       ['app.cache_cleanup.inspect', { groups: ['normal_cache'] }],
       ['binary.get_latest_versions', false],
       ['channel.get_statuses', undefined],
+      ['cherryin.get_balance', { apiHost: 'https://open.cherryin.ai' }],
       ['file_processing.list_available_processors', undefined],
       ['file.batch_get_dangling_states', { ids: ['01912345-6789-7abc-8def-0123456789ab'] }],
       [
@@ -562,6 +584,7 @@ describe('API gateway routes (integration)', () => {
       ['mcp.server.read_resource_preview', { serverId: 'server-1', uri: 'file:///readme', maxChars: 4000 }],
       ['mcp.server.refresh_tools', { serverId: 'server-1' }],
       ['mcp.tool.abort_call', { callId: 'call-1', scope: 'topic-1' }],
+      ['oauth.has_token', { providerId: 'cherryin' }],
       ['ovms.get_status', undefined],
       ['ovms.is_supported', undefined],
       ['skill.reconcile', {}]
@@ -570,6 +593,17 @@ describe('API gateway routes (integration)', () => {
 
       expect(status).toBe(200)
       expect(mockIpcApiRequest).toHaveBeenCalledWith(route, input)
+    })
+
+    it.each([
+      ['oauth.logout', { providerId: 'cherryin' }],
+      ['cherryin.logout', { apiHost: 'https://open.cherryin.ai' }]
+    ])('keeps the remote OAuth mutation %s unavailable', async (route, input) => {
+      const { status, body } = await read(await webPost('/web/api/ipc', { route, input }))
+
+      expect(status).toBe(403)
+      expect(body).toEqual({ error: 'Route is not available to remote clients' })
+      expect(mockIpcApiRequest).not.toHaveBeenCalled()
     })
 
     it('keeps remote CLI execution unavailable', async () => {

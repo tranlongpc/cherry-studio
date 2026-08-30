@@ -80,6 +80,18 @@ index 5774837..a06b785 100644
            }
          });
        },
+@@ -8510,7 +8520,10 @@ function readUIMessageStream({
+     onError: handleError
+   }).finally(() => {
+     if (!hasErrored) {
+-      controller == null ? void 0 : controller.close();
++      try {
++        controller == null ? void 0 : controller.close();
++      } catch {
++      }
+     }
+   });
+   return createAsyncIterableStream(outputStream);
 @@ -9636,6 +9646,14 @@ var DefaultEmbedManyResult = class {
  
  // src/generate-image/generate-image.ts
@@ -200,6 +212,18 @@ index 6862f01..ccdb020 100644
            }
          });
        },
+@@ -8434,7 +8444,10 @@ function readUIMessageStream({
+     onError: handleError
+   }).finally(() => {
+     if (!hasErrored) {
+-      controller == null ? void 0 : controller.close();
++      try {
++        controller == null ? void 0 : controller.close();
++      } catch {
++      }
+     }
+   });
+   return createAsyncIterableStream(outputStream);
 @@ -9575,6 +9585,14 @@ import {
    convertBase64ToUint8Array as convertBase64ToUint8Array4,
    withUserAgentSuffix as withUserAgentSuffix5

@@ -354,6 +354,9 @@ export function installWebBridge(): void {
         }
         if (route === 'window.get_init_data') return Promise.resolve({ ok: true, data: null })
         if (route === 'window.is_maximized') return Promise.resolve({ ok: true, data: false })
+        if (route === 'window.main.set_minimum_size' || route === 'window.main.reset_minimum_size') {
+          return Promise.resolve({ ok: true, data: undefined })
+        }
         if (route === 'app.adjust_zoom') {
           return Promise.resolve({ ok: true, data: adjustBrowserZoom(input.delta, input.reset ?? false) })
         }

@@ -74,6 +74,8 @@ describe('webBridge', () => {
 
     await expect(ipcApi.request('window.get_init_data')).resolves.toBeNull()
     await expect(ipcApi.request('window.is_maximized')).resolves.toBe(false)
+    await expect(ipcApi.request('window.main.set_minimum_size', { width: 900, height: 640 })).resolves.toBeUndefined()
+    await expect(ipcApi.request('window.main.reset_minimum_size')).resolves.toBeUndefined()
     await expect(ipcApi.request('mcp.protocol_install.list_pending')).resolves.toEqual([])
 
     expect(fetchSpy).not.toHaveBeenCalled()

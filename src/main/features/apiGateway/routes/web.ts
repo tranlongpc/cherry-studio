@@ -20,6 +20,7 @@ import { binaryRequestSchemas } from '@shared/ipc/schemas/binary'
 import { fileRequestSchemas } from '@shared/ipc/schemas/file'
 import { createInternalEntryInputSchema } from '@shared/ipc/schemas/file'
 import { knowledgeRequestSchemas } from '@shared/ipc/schemas/knowledge'
+import { webSearchRequestSchemas } from '@shared/ipc/schemas/webSearch'
 import { FILE_TYPE, type FileType } from '@shared/types/file'
 import type { TreeMutationPushPayload } from '@shared/utils/file'
 import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/utils/file'
@@ -114,6 +115,7 @@ const REMOTE_IPC_ROUTES = [
   'binary.get_latest_versions',
   'binary.get_tool_snapshots',
   'channel.get_statuses',
+  'cherryin.get_balance',
   'file.batch_get_dangling_states',
   'file.batch_get_metadata',
   'file.batch_get_physical_paths',
@@ -132,6 +134,7 @@ const REMOTE_IPC_ROUTES = [
   'mcp.server.read_resource_preview',
   'mcp.server.refresh_tools',
   'mcp.tool.abort_call',
+  'oauth.has_token',
   'ovms.get_status',
   'ovms.is_supported',
   'skill.reconcile',
@@ -146,6 +149,22 @@ function isRemoteIpcRoute(route: string): boolean {
 function isRemoteCodeOwnedBinaryInput(route: 'binary.install_tool' | 'binary.remove_tool', input: unknown): boolean {
   const parsed = binaryRequestSchemas[route].input.safeParse(input)
   return parsed.success && REMOTE_BINARY_TOOL_NAMES.has(parsed.data.name)
+}
+
+type RemoteWebSearchCheckRoute = 'web_search.search_keywords' | 'web_search.fetch_urls'
+
+const REMOTE_WEB_SEARCH_CHECK_ROUTES = new Set<RemoteWebSearchCheckRoute>([
+  'web_search.search_keywords',
+  'web_search.fetch_urls'
+])
+
+function isRemoteWebSearchCheckInput(route: RemoteWebSearchCheckRoute, input: unknown): boolean {
+  if (route === 'web_search.search_keywords') {
+    const parsed = webSearchRequestSchemas[route].input.safeParse(input)
+    return parsed.success && parsed.data.keywords.length === 1 && parsed.data.keywords[0] === 'Cherry Studio'
+  }
+  const parsed = webSearchRequestSchemas[route].input.safeParse(input)
+  return parsed.success && parsed.data.urls.length === 1 && parsed.data.urls[0] === 'https://example.com'
 }
 
 function isPathWithinRoot(candidate: string, rootPath: string): boolean {
@@ -607,6 +626,13 @@ export const webRoutes = new Elysia()
       }
       if (request.route === 'binary.install_tool' || request.route === 'binary.remove_tool') {
         if (!isRemoteCodeOwnedBinaryInput(request.route, request.input)) {
+          set.status = 403
+          return { error: 'Route is not available to remote clients' }
+        }
+        return application.get('IpcApiService').requestFromRemote(request.route, request.input)
+      }
+      if (REMOTE_WEB_SEARCH_CHECK_ROUTES.has(request.route as RemoteWebSearchCheckRoute)) {
+        if (!isRemoteWebSearchCheckInput(request.route as RemoteWebSearchCheckRoute, request.input)) {
           set.status = 403
           return { error: 'Route is not available to remote clients' }
         }
