@@ -12,7 +12,8 @@ import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const platformState = vi.hoisted(() => ({
-  isMac: true
+  isMac: true,
+  isWeb: false
 }))
 
 const ipcMocks = vi.hoisted(() => ({
@@ -66,6 +67,9 @@ vi.mock('@tanstack/react-virtual', () => ({
 vi.mock('@renderer/utils/platform', () => ({
   get isMac() {
     return platformState.isMac
+  },
+  get isWeb() {
+    return platformState.isWeb
   }
 }))
 
@@ -210,6 +214,7 @@ function selectFileAt(index: number) {
 
 beforeEach(() => {
   platformState.isMac = true
+  platformState.isWeb = false
   ipcMocks.request.mockReturnValue(new Promise(() => {}))
   mockFiles([entry])
 })
@@ -676,6 +681,7 @@ describe('FilesPage file operations', () => {
       if (route === 'file.batch_get_metadata') return Promise.resolve({})
       if (route === 'file.batch_get_physical_paths') return Promise.resolve({})
       if (route === 'file.batch_get_dangling_states') return Promise.resolve({})
+      if (route === 'file.batch_retain') return Promise.resolve({ succeeded: [], failed: [] })
       if (route === 'file.batch_trash') return Promise.resolve({ succeeded: [], failed: [] })
       if (route === 'file.batch_permanent_delete') return Promise.resolve({ succeeded: [], failed: [] })
       if (route === 'file.batch_restore') return Promise.resolve({ succeeded: [], failed: [] })
@@ -842,6 +848,31 @@ describe('FilesPage file operations', () => {
       })
       expect(refetchStats).toHaveBeenCalled()
     })
+  })
+
+  it('retains browser uploads without copying their managed files', async () => {
+    platformState.isWeb = true
+    const refetchStats = vi.fn().mockResolvedValue(undefined)
+    const fileApi = window.api.file as typeof window.api.file & { select: ReturnType<typeof vi.fn> }
+    fileApi.select = vi.fn().mockResolvedValue([
+      {
+        id: '019606a0-0000-7000-8000-000000000001',
+        path: '/mock/feature.files.data/upload.md'
+      }
+    ])
+    mockFiles([entry])
+    mockFileStats(statsForEntries([entry]), refetchStats)
+    render(<FilesPage />)
+
+    fireEvent.click(screen.getByText('files.upload'))
+
+    await waitFor(() => {
+      expect(ipcMocks.request).toHaveBeenCalledWith('file.batch_retain', {
+        ids: ['019606a0-0000-7000-8000-000000000001']
+      })
+      expect(refetchStats).toHaveBeenCalled()
+    })
+    expect(ipcMocks.request).not.toHaveBeenCalledWith('file.batch_create_internal_entries', expect.anything())
   })
 
   it('imports selected files from a type category view', async () => {

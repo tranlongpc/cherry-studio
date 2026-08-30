@@ -615,6 +615,22 @@ describe('FileManager (integration)', () => {
     expect(rows).toHaveLength(2)
   })
 
+  it('retains existing uploads without creating another entry', async () => {
+    const uploaded = await fm.createInternalEntry({
+      source: 'bytes',
+      data: new Uint8Array([1, 2, 3]),
+      name: 'upload',
+      ext: 'txt',
+      cleanupPolicy: 'delete_when_unreferenced'
+    })
+
+    const result = await fm.batchRetain([uploaded.id])
+
+    expect(result).toEqual({ succeeded: [uploaded.id], failed: [] })
+    expect(fileEntryService.getById(uploaded.id).cleanupPolicy).toBe('manual')
+    expect(await dbh.db.select().from(fileEntryTable)).toHaveLength(1)
+  })
+
   it('INT-15b: batchEnsureExternalEntries dedupes within-batch duplicate paths and aggregates per-item failures', async () => {
     const same = path.join(tmp, 'dedupe.txt')
     await writeFile(same, 'x')

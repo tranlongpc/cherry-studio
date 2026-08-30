@@ -1,3 +1,4 @@
+import { ipcApi } from '@renderer/ipc'
 import type { SpanEntity } from '@shared/data/types/trace'
 import type { TraceDataCursor } from '@shared/data/types/trace'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -88,7 +89,7 @@ export const TracePage = ({ topicId, traceId }: TracePageProps) => {
 
     const poll = async (): Promise<number> => {
       try {
-        const result = await window.api.trace.getData(topicId, traceId, cursor)
+        const result = await ipcApi.request('trace.get_data', { topicId, traceId, cursor })
         if (cancelled) return TRACE_IDLE_POLL_INTERVAL_MS
         cursor = result.cursor
         failureCountRef.current = 0

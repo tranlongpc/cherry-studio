@@ -23,6 +23,7 @@ import { FILE_TYPE, type FileType } from '@shared/types/file'
 import type { TreeMutationPushPayload } from '@shared/utils/file'
 import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/utils/file'
 import { Elysia } from 'elysia'
+import mime from 'mime'
 
 import { authenticateWebCredentials, isWebSessionAuthenticated, webAuthConfigured, webSessionCookie } from '../webAuth'
 import { type WebStreamEvent, WebStreamListener } from '../WebStreamListener'
@@ -39,6 +40,7 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 const MAX_WEB_UPLOAD_BYTES = 100 * 1024 * 1024
+const WEB_EVENT_HEARTBEAT_INTERVAL_MS = 15_000
 const REMOTE_BINARY_TOOL_NAMES = new Set([
   ...PRESETS_BINARY_TOOLS.map((tool) => tool.name),
   ...Object.keys(CODE_CLI_TOOL_PRESET_BY_EXECUTABLE)
@@ -114,6 +116,7 @@ const REMOTE_IPC_ROUTES = [
   'file.batch_get_dangling_states',
   'file.batch_get_metadata',
   'file.batch_get_physical_paths',
+  'file.batch_retain',
   'file.get_metadata',
   'file_processing.list_available_processors',
   'knowledge.create_base',
@@ -131,7 +134,8 @@ const REMOTE_IPC_ROUTES = [
   'ovms.get_status',
   'ovms.is_supported',
   'skill.reconcile',
-  'system.get_ip_country'
+  'system.get_ip_country',
+  'trace.get_data'
 ] as const
 
 function isRemoteIpcRoute(route: string): boolean {
@@ -263,6 +267,7 @@ function safeNoteName(value: string): string {
 
 interface WebEventClient {
   controller: ReadableStreamDefaultController<Uint8Array>
+  heartbeatId: ReturnType<typeof setInterval>
   listeners: Map<string, WebStreamListener>
 }
 
@@ -292,6 +297,7 @@ function remoteDispatchListener(topicId: string): StreamListener {
 function closeEventClient(clientId: string): void {
   const client = webEventClients.get(clientId)
   if (!client) return
+  clearInterval(client.heartbeatId)
   for (const [topicId, listener] of client.listeners) {
     listener.close()
     application.get('AiStreamManager').detachListener(topicId, listener.id)
@@ -374,7 +380,10 @@ export const webRoutes = new Elysia()
       const stream = new ReadableStream<Uint8Array>({
         start(controller) {
           closeEventClient(clientId)
-          webEventClients.set(clientId, { controller, listeners: new Map() })
+          const heartbeatId = setInterval(() => {
+            controller.enqueue(encoder.encode(`${JSON.stringify({ type: 'heartbeat' })}\n`))
+          }, WEB_EVENT_HEARTBEAT_INTERVAL_MS)
+          webEventClients.set(clientId, { controller, heartbeatId, listeners: new Map() })
           controller.enqueue(encoder.encode(`${JSON.stringify({ type: 'ready' })}\n`))
           request.signal.addEventListener('abort', () => closeEventClient(clientId), { once: true })
         },
@@ -383,7 +392,11 @@ export const webRoutes = new Elysia()
         }
       })
       return new Response(stream, {
-        headers: { 'cache-control': 'no-cache, no-transform', 'content-type': 'application/x-ndjson; charset=utf-8' }
+        headers: {
+          'cache-control': 'no-cache, no-transform',
+          'content-type': 'text/event-stream; charset=utf-8',
+          'x-accel-buffering': 'no'
+        }
       })
     },
     { detail: { hide: true } }
@@ -483,6 +496,27 @@ export const webRoutes = new Elysia()
       }
       const bytes = body instanceof ArrayBuffer ? new Uint8Array(body) : new Uint8Array(body as Uint8Array)
       return storeWebUpload(decodeURIComponent(encodedName), bytes)
+    },
+    { detail: { hide: true } }
+  )
+  .get(
+    '/web/api/file-content',
+    async ({ query, request, set }) => {
+      const failure = authorize(request, set)
+      if (failure) return failure
+      if (typeof query.path !== 'string') {
+        set.status = 400
+        return { error: 'Missing file path' }
+      }
+      const target = managedReadPath(query.path)
+      const content = await readFile(target)
+      return new Response(content, {
+        headers: {
+          'cache-control': 'private, no-store',
+          'content-type': mime.getType(target) ?? 'application/octet-stream',
+          'x-content-type-options': 'nosniff'
+        }
+      })
     },
     { detail: { hide: true } }
   )

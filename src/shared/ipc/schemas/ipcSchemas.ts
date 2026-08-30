@@ -33,6 +33,7 @@ import { type SelectionEventSchemas, selectionRequestSchemas } from './selection
 import { skillRequestSchemas } from './skill'
 import { type SystemEventSchemas, systemRequestSchemas } from './system'
 import { type TabEventSchemas, tabRequestSchemas } from './tab'
+import { traceRequestSchemas } from './trace'
 import { type TranslateEventSchemas, translateRequestSchemas } from './translate'
 import { webSearchRequestSchemas } from './webSearch'
 import { webviewRequestSchemas } from './webview'
@@ -80,6 +81,7 @@ export const ipcRequestSchemas = {
   ...skillRequestSchemas,
   ...systemRequestSchemas,
   ...tabRequestSchemas,
+  ...traceRequestSchemas,
   ...translateRequestSchemas,
   ...webSearchRequestSchemas,
   ...webviewRequestSchemas,

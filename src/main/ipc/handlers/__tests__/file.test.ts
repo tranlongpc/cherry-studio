@@ -94,7 +94,8 @@ const fileManager = {
   open: vi.fn(),
   showInFolder: vi.fn(),
   writeIfUnchanged: vi.fn(),
-  batchCreateInternalEntries: vi.fn()
+  batchCreateInternalEntries: vi.fn(),
+  batchRetain: vi.fn()
 }
 
 const directoryTreeManager = {
@@ -390,6 +391,13 @@ describe('fileHandlers', () => {
 
     await expect(fileHandlers['file.batch_create_internal_entries']({ items }, ctx)).resolves.toBe(result)
     expect(fileManager.batchCreateInternalEntries).toHaveBeenCalledWith(items)
+  })
+
+  it('delegates retained entry ids to FileManager', async () => {
+    fileManager.batchRetain.mockResolvedValue(batchResult)
+
+    await expect(fileHandlers['file.batch_retain']({ ids }, ctx)).resolves.toBe(batchResult)
+    expect(fileManager.batchRetain).toHaveBeenCalledWith(ids)
   })
 
   it('creates a directory tree addressed to the caller window WebContents', async () => {

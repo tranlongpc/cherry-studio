@@ -133,6 +133,7 @@ export const fileRequestSchemas = {
     input: batchCreateInternalEntriesInputSchema,
     output: batchCreateResultSchema
   }),
+  'file.batch_retain': defineRoute({ input: fileEntryIdsInputSchema, output: batchMutationResultSchema }),
   'file.batch_trash': defineRoute({ input: fileEntryIdsInputSchema, output: batchMutationResultSchema }),
   'file.batch_restore': defineRoute({ input: fileEntryIdsInputSchema, output: batchMutationResultSchema }),
   'file.batch_permanent_delete': defineRoute({ input: fileEntryIdsInputSchema, output: batchMutationResultSchema }),

@@ -1,13 +1,26 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const { platformState } = vi.hoisted(() => ({ platformState: { isWeb: false } }))
+
+vi.mock('@renderer/utils/platform', () => ({
+  get isWeb() {
+    return platformState.isWeb
+  }
+}))
 
 import {
   createFilePreviewTabTarget,
   getFilePreviewExtension,
   getFilePreviewFileName,
   getFilePreviewRefreshKey,
+  getFilePreviewResourceUrl,
   normalizeFilePreviewPath,
   parseFilePreviewRouteSearch
 } from '../filePreview'
+
+beforeEach(() => {
+  platformState.isWeb = false
+})
 
 describe('file preview paths', () => {
   it('canonicalizes POSIX paths and preserves the file name', () => {
@@ -55,6 +68,17 @@ describe('file preview route target', () => {
       title: 'report #1.md',
       url: '/app/file-preview?path=%2Ftmp%2FMy+Files%2Freport+%231.md'
     })
+  })
+
+  it('uses an authenticated HTTP resource URL on web and a file URL on desktop', () => {
+    const filePath = '/Volumes/Data/Files/image #1.png'
+
+    expect(getFilePreviewResourceUrl(filePath, 2)).toBe('file:///Volumes/Data/Files/image%20%231.png')
+
+    platformState.isWeb = true
+    expect(getFilePreviewResourceUrl(filePath, 2)).toBe(
+      '/web/api/file-content?path=%2FVolumes%2FData%2FFiles%2Fimage+%231.png&v=2'
+    )
   })
 
   it('builds the same URL for lexically equivalent paths', () => {

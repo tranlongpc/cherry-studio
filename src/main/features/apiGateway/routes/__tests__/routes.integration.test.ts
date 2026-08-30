@@ -245,6 +245,26 @@ describe('API gateway routes (integration)', () => {
       expect(await response.text()).toBe('Missing clientId')
     })
 
+    it('streams web events through proxies and keeps idle connections alive', async () => {
+      vi.useFakeTimers()
+      const response = await get(app, '/web/api/events', { cookie, 'x-cherry-web-client-id': 'heartbeat-client' })
+      const reader = response.body!.getReader()
+      const decoder = new TextDecoder()
+
+      try {
+        expect(response.headers.get('content-type')).toContain('text/event-stream')
+        await expect(reader.read()).resolves.toMatchObject({ done: false })
+
+        await vi.advanceTimersByTimeAsync(15_000)
+
+        const heartbeat = await reader.read()
+        expect(decoder.decode(heartbeat.value)).toBe(`${JSON.stringify({ type: 'heartbeat' })}\n`)
+      } finally {
+        await reader.cancel()
+        vi.useRealTimers()
+      }
+    })
+
     it('requires authentication for web API requests', async () => {
       const { status, body } = await read(
         await post(app, '/web/api/preference', { action: 'getAll' }, { 'content-type': 'application/json' })
@@ -474,6 +494,22 @@ describe('API gateway routes (integration)', () => {
       const { status } = await read(await webPost('/web/api/ipc', { route: 'system.get_ip_country' }))
       expect(status).toBe(200)
       expect(mockIpcApiRequest).toHaveBeenCalledWith('system.get_ip_country', undefined)
+    })
+
+    it('allows retaining uploaded file entries by id', async () => {
+      const input = { ids: ['019606a0-0000-7000-8000-000000000001'] }
+      const { status } = await read(await webPost('/web/api/ipc', { route: 'file.batch_retain', input }))
+
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('file.batch_retain', input)
+    })
+
+    it('allows polling trace data without exposing trace cleanup', async () => {
+      const input = { topicId: '123e4567-e89b-42d3-a456-426614174000', traceId: 'a'.repeat(32) }
+      const { status } = await read(await webPost('/web/api/ipc', { route: 'trace.get_data', input }))
+
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('trace.get_data', input)
     })
 
     it('allows managing code-owned binary tools without exposing custom recipes', async () => {
@@ -721,6 +757,36 @@ describe('API gateway routes (integration)', () => {
         expect(body).toEqual({ data: [80, 75, 3, 4] })
       } finally {
         await rm(workspaceRoot, { recursive: true, force: true })
+      }
+    })
+
+    it('serves managed files through an authenticated browser resource URL', async () => {
+      const filesRoot = await mkdtemp(join(tmpdir(), 'cherry-web-resource-'))
+      const imagePath = join(filesRoot, 'image.png')
+      const imageBytes = new Uint8Array([137, 80, 78, 71])
+      await writeFile(imagePath, imageBytes)
+      vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) => {
+        const root = key === 'feature.files.data' ? filesRoot : `/mock/${key}`
+        return filename ? join(root, filename) : root
+      })
+
+      try {
+        const resourcePath = `/web/api/file-content?path=${encodeURIComponent(imagePath)}`
+        const unauthorized = await get(app, resourcePath, {})
+        const response = await get(app, resourcePath, { cookie })
+        const outside = await get(app, `/web/api/file-content?path=${encodeURIComponent('/etc/passwd')}`, { cookie })
+
+        expect(unauthorized.status).toBe(401)
+        expect(response.status).toBe(200)
+        expect(outside.status).toBe(500)
+        expect(response.headers.get('content-type')).toBe('image/png')
+        expect(response.headers.get('x-content-type-options')).toBe('nosniff')
+        expect(new Uint8Array(await response.arrayBuffer())).toEqual(imageBytes)
+      } finally {
+        vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) =>
+          filename ? `/mock/${key}/${filename}` : `/mock/${key}`
+        )
+        await rm(filesRoot, { recursive: true, force: true })
       }
     })
   })

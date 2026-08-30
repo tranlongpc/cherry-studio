@@ -1,5 +1,6 @@
+import { isWeb } from '@renderer/utils/platform'
 import type { AbsoluteFilePath } from '@shared/types/file'
-import { canonicalizeFilePath, createFilePathHandle } from '@shared/utils/file'
+import { canonicalizeFilePath, createFilePathHandle, toFileUrl } from '@shared/utils/file'
 
 export const FILE_PREVIEW_ROUTE = '/app/file-preview'
 export const FILE_PREVIEW_REFRESH_KEY = 'filePreviewRefreshKey'
@@ -34,6 +35,12 @@ export function getFilePreviewExtension(filePath: string): string | null {
   const dotIndex = fileName.lastIndexOf('.')
   if (dotIndex <= 0 || dotIndex === fileName.length - 1) return null
   return fileName.slice(dotIndex + 1).toLowerCase()
+}
+
+export function getFilePreviewResourceUrl(filePath: string, refreshKey: number): string {
+  if (!isWeb) return toFileUrl(normalizeFilePreviewPath(filePath))
+  const search = new URLSearchParams({ path: normalizeFilePreviewPath(filePath), v: String(refreshKey) })
+  return `/web/api/file-content?${search.toString()}`
 }
 
 export function createFilePreviewTabTarget(filePath: string): FilePreviewTabTarget {

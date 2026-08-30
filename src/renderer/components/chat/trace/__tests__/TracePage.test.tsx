@@ -6,8 +6,12 @@ import { TracePage } from '../TracePage'
 import type * as TraceTreeModule from '../TraceTree'
 
 const mocks = vi.hoisted(() => ({
-  getData: vi.fn(),
+  request: vi.fn(),
   t: (key: string) => key
+}))
+
+vi.mock('@renderer/ipc', () => ({
+  ipcApi: { request: mocks.request }
 }))
 
 vi.mock('react-i18next', () => ({
@@ -76,7 +80,7 @@ function TracePageHarness({ visible, traceId = 'a1b2c3' }: { visible: boolean; t
 describe('TracePage', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    mocks.getData.mockReset().mockResolvedValue({
+    mocks.request.mockReset().mockResolvedValue({
       reset: true,
       cursor: { historyVersion: null, liveRevision: 1 },
       spans: [
@@ -89,7 +93,6 @@ describe('TracePage', () => {
         }
       ]
     })
-    ;(window as unknown as { api: unknown }).api = { trace: { getData: mocks.getData } }
   })
 
   afterEach(() => {
@@ -102,18 +105,18 @@ describe('TracePage', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(6_000)
     })
-    const callsAfterIdlePeriod = mocks.getData.mock.calls.length
+    const callsAfterIdlePeriod = mocks.request.mock.calls.length
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5_000)
     })
 
-    expect(mocks.getData.mock.calls.length).toBeGreaterThan(callsAfterIdlePeriod)
+    expect(mocks.request.mock.calls.length).toBeGreaterThan(callsAfterIdlePeriod)
   })
 
   it('passes the server cursor and applies a changed span without requesting another full snapshot', async () => {
     const cursor = { historyVersion: '1:100', liveRevision: 4 }
-    mocks.getData
+    mocks.request
       .mockResolvedValueOnce({
         reset: true,
         cursor,
@@ -131,14 +134,22 @@ describe('TracePage', () => {
       await vi.advanceTimersByTimeAsync(1_000)
     })
 
-    expect(mocks.getData).toHaveBeenNthCalledWith(1, 'topic-1', 'a1b2c3', undefined)
-    expect(mocks.getData).toHaveBeenNthCalledWith(2, 'topic-1', 'a1b2c3', cursor)
+    expect(mocks.request).toHaveBeenNthCalledWith(1, 'trace.get_data', {
+      topicId: 'topic-1',
+      traceId: 'a1b2c3',
+      cursor: undefined
+    })
+    expect(mocks.request).toHaveBeenNthCalledWith(2, 'trace.get_data', {
+      topicId: 'topic-1',
+      traceId: 'a1b2c3',
+      cursor
+    })
     expect(screen.getByText('after')).toBeInTheDocument()
   })
 
   it('updates the selected span detail after receiving a delta', async () => {
     const cursor = { historyVersion: '1:100', liveRevision: 4 }
-    mocks.getData
+    mocks.request
       .mockResolvedValueOnce({
         reset: true,
         cursor,
@@ -186,7 +197,7 @@ describe('TracePage', () => {
   // clicks and the selection. Leaving the rendered rows behind would strand them: visible, but
   // unresolvable by every handler.
   it('clears the rendered spans when a reset arrives mid-stream with nothing left', async () => {
-    mocks.getData
+    mocks.request
       .mockResolvedValueOnce({
         reset: true,
         cursor: { historyVersion: '1:100', liveRevision: 4 },
@@ -214,7 +225,7 @@ describe('TracePage', () => {
 
   it('does not overlap polls while the previous IPC request is pending', async () => {
     let resolveRequest: ((value: unknown) => void) | undefined
-    mocks.getData.mockImplementation(
+    mocks.request.mockImplementation(
       () =>
         new Promise((resolve) => {
           resolveRequest = resolve
@@ -225,7 +236,7 @@ describe('TracePage', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5_000)
     })
-    expect(mocks.getData).toHaveBeenCalledTimes(1)
+    expect(mocks.request).toHaveBeenCalledTimes(1)
 
     await act(async () => {
       resolveRequest?.({ reset: true, cursor: { historyVersion: null, liveRevision: 0 }, spans: [] })
@@ -238,14 +249,14 @@ describe('TracePage', () => {
     await act(async () => {
       await Promise.resolve()
     })
-    const callsBeforeUnmount = mocks.getData.mock.calls.length
+    const callsBeforeUnmount = mocks.request.mock.calls.length
 
     view.unmount()
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000)
     })
 
-    expect(mocks.getData).toHaveBeenCalledTimes(callsBeforeUnmount)
+    expect(mocks.request).toHaveBeenCalledTimes(callsBeforeUnmount)
   })
 
   it('clears selection and starts a fresh cursor when switching traces', async () => {
@@ -262,6 +273,10 @@ describe('TracePage', () => {
     })
 
     expect(screen.queryByTestId('code-viewer')).not.toBeInTheDocument()
-    expect(mocks.getData).toHaveBeenLastCalledWith('topic-1', 'd4e5f6', undefined)
+    expect(mocks.request).toHaveBeenLastCalledWith('trace.get_data', {
+      topicId: 'topic-1',
+      traceId: 'd4e5f6',
+      cursor: undefined
+    })
   })
 })

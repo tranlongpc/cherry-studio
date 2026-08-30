@@ -476,6 +476,8 @@ export interface IFileManager {
   /** Batch version of `createInternalEntry`. Each item produces an independent new entry. */
   batchCreateInternalEntries(items: CreateInternalEntryParams[]): Promise<BatchCreateResult>
 
+  batchRetain(ids: FileEntryId[]): Promise<BatchMutationResult>
+
   /**
    * Batch version of `ensureExternalEntry`. Within-batch path duplicates are
    * coalesced to a single entry in the result (the second occurrence reuses
@@ -1108,6 +1110,21 @@ export class FileManager extends BaseService implements IFileManager {
       (_, index) => `#${index}`,
       (p) => this.createInternalEntry(p)
     )
+  }
+
+  async batchRetain(ids: FileEntryId[]): Promise<BatchMutationResult> {
+    const succeeded: BatchMutationResult['succeeded'] = []
+    const failed: BatchMutationResult['failed'] = []
+    for (const id of ids) {
+      try {
+        this.deps.fileEntryService.update(id, { cleanupPolicy: 'manual' })
+        succeeded.push(id)
+      } catch (err) {
+        fileManagerLogger.warn('batch retain item failed', { id, err })
+        failed.push({ id, error: (err as Error).message })
+      }
+    }
+    return { succeeded, failed }
   }
 
   async batchEnsureExternalEntries(items: EnsureExternalEntryParams[]): Promise<BatchCreateResult> {

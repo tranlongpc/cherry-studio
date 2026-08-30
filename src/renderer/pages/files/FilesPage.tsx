@@ -20,8 +20,9 @@ import { ipcApi } from '@renderer/ipc'
 import { ImagePreviewService } from '@renderer/services/ImagePreviewService'
 import { toast } from '@renderer/services/toast'
 import { normalizeFilePreviewPath } from '@renderer/utils/filePreview'
-import { isMac } from '@renderer/utils/platform'
+import { isMac, isWeb } from '@renderer/utils/platform'
 import type { FileEntry, FileEntryId } from '@shared/data/types/file'
+import { FileEntryIdSchema } from '@shared/data/types/file'
 import type { OutputFor } from '@shared/ipc/types'
 import type { AbsoluteFilePath, FileType } from '@shared/types/file'
 import { AbsoluteFilePathSchema } from '@shared/types/file'
@@ -49,7 +50,11 @@ type DanglingStateById = OutputFor<'file.batch_get_dangling_states'>
 type BatchCreateInternalEntriesResult = OutputFor<'file.batch_create_internal_entries'>
 type FileBatchMutationResult = OutputFor<'file.batch_trash'>
 type FileBatchRoute = 'file.batch_get_metadata' | 'file.batch_get_physical_paths' | 'file.batch_get_dangling_states'
-type FileBatchMutationRoute = 'file.batch_trash' | 'file.batch_restore' | 'file.batch_permanent_delete'
+type FileBatchMutationRoute =
+  | 'file.batch_retain'
+  | 'file.batch_trash'
+  | 'file.batch_restore'
+  | 'file.batch_permanent_delete'
 
 interface EmbeddedFilePreview {
   fileName: string
@@ -107,6 +112,8 @@ async function requestBatchedFileMutation(
   const results = await Promise.all(
     chunks.map((chunk) => {
       switch (route) {
+        case 'file.batch_retain':
+          return ipcApi.request('file.batch_retain', { ids: chunk })
         case 'file.batch_trash':
           return ipcApi.request('file.batch_trash', { ids: chunk })
         case 'file.batch_restore':
@@ -615,6 +622,14 @@ function FilesPage() {
       })
       if (!selected || selected.length === 0) return
 
+      if (isWeb) {
+        const ids = selected.map((file) => FileEntryIdSchema.parse(file.id))
+        const result = await requestBatchedFileMutation('file.batch_retain', ids)
+        reportMutationFailures('file retain', result, t('files.error.import_partial_failed'))
+        await refetchFiles()
+        return
+      }
+
       const paths = selected
         .map((file) => AbsoluteFilePathSchema.safeParse(file.path).data)
         .filter((path): path is AbsoluteFilePath => Boolean(path))
@@ -623,7 +638,7 @@ function FilesPage() {
       logger.error('Failed to select files for import', error as Error)
       toast.error(t('files.error.import_failed'))
     }
-  }, [handleImportPaths, t])
+  }, [handleImportPaths, refetchFiles, t])
 
   const filteredFiles = useMemo(() => {
     let result = files
