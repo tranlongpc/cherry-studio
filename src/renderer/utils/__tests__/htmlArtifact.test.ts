@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { htmlArtifactRequiresUserConsent, stripMetaRefresh, stripScriptElements } from '../htmlArtifact'
+import { htmlArtifactRequiresUserConsent, stripExecutableContent, stripMetaRefresh } from '../htmlArtifact'
 
 describe('htmlArtifactRequiresUserConsent', () => {
   it('allows static inline HTML to render immediately', () => {
@@ -68,10 +68,16 @@ describe('stripMetaRefresh', () => {
   })
 })
 
-describe('stripScriptElements', () => {
+describe('stripExecutableContent', () => {
+  it('keeps inert documents byte-for-byte unchanged', () => {
+    const html = '<!doctype html><html><body><main>Preview</main></body></html>'
+
+    expect(stripExecutableContent(html)).toBe(html)
+  })
+
   it('keeps static markup and removes executable script elements', () => {
     const html = '<main>Preview</main><script>window.__ran = true</script><p>Ready</p>'
 
-    expect(stripScriptElements(html)).toBe('<main>Preview</main><p>Ready</p>')
+    expect(stripExecutableContent(html)).toBe('<main>Preview</main><p>Ready</p>')
   })
 })

@@ -18,6 +18,8 @@ const URL_ATTRIBUTES = new Set([
 ])
 const EXTERNAL_URL_PATTERN = /(?:^|[\s"'(,])(?:https?:|file:|\/\/)/i
 const SCRIPT_URL_PATTERN = /^\s*(?:javascript|vbscript):/i
+const POTENTIALLY_EXECUTABLE_CONTENT_PATTERN =
+  /<\s*(?:script|iframe|object|embed)\b|\son[^\s=/>]*\s*=|javascript|vbscript|&/i
 const ASCII_TAB_OR_NEWLINE_PATTERN = /[\t\n\r]/g
 const CSS_ESCAPE_PATTERN = /\\(?:([0-9a-f]{1,6})[ \t\n\r\f]?|(\r\n|[\n\r\f])|(.))/gi
 
@@ -125,12 +127,22 @@ export function stripMetaRefresh(html: string): string {
   return DomUtils.getOuterHTML(document)
 }
 
-export function stripScriptElements(html: string): string {
-  if (!/<script[\s/>]/i.test(html)) return html
+export function stripExecutableContent(html: string): string {
+  if (!POTENTIALLY_EXECUTABLE_CONTENT_PATTERN.test(html)) return html
 
   const document = parseDocument(html)
-  for (const script of DomUtils.findAll((element) => element.name === 'script', document.children)) {
-    DomUtils.removeElement(script)
+  for (const element of DomUtils.findAll(
+    (candidate) => ACTIVE_CONTENT_ELEMENTS.has(candidate.name),
+    document.children
+  )) {
+    DomUtils.removeElement(element)
+  }
+  for (const element of DomUtils.findAll(() => true, document.children)) {
+    for (const [attributeName, value] of Object.entries(element.attribs)) {
+      if (attributeName.startsWith('on') || SCRIPT_URL_PATTERN.test(normalizeUrlAttribute(value))) {
+        delete element.attribs[attributeName]
+      }
+    }
   }
   return DomUtils.getOuterHTML(document)
 }

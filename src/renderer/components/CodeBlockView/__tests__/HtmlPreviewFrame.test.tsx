@@ -83,6 +83,20 @@ describe('HtmlPreviewFrame', () => {
     expect(iframe.getAttribute('srcdoc')).not.toContain('<script')
   })
 
+  it('removes executable attributes and nested frames from restricted srcdoc', () => {
+    render(
+      <HtmlPreviewFrame
+        html={
+          '<body onload="run()"><img src="missing" onerror="run()"><iframe srcdoc="<script>run()</script>"></iframe></body>'
+        }
+        title="common.html_preview"
+      />
+    )
+
+    const srcDoc = screen.getByTitle('common.html_preview').getAttribute('srcdoc') ?? ''
+    expect(srcDoc).not.toMatch(/onload|onerror|<iframe|<script/i)
+  })
+
   it('injects a Content-Security-Policy meta into the head for untrusted previews', () => {
     const result = injectHtmlPreviewCsp(
       '<html><head><title>x</title></head><body>hi</body></html>',
