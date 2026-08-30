@@ -23,6 +23,7 @@ describe('webBridge', () => {
   beforeEach(() => {
     clearWebSession()
     vi.restoreAllMocks()
+    document.documentElement.style.removeProperty('zoom')
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: vi.fn(() => ({ matches: true }))
@@ -40,12 +41,22 @@ describe('webBridge', () => {
   it('resolves browser-native capabilities without calling the server', async () => {
     const fetchSpy = vi.spyOn(window, 'fetch')
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const setStyleSpy = vi.spyOn(document.documentElement.style, 'setProperty')
+    const removeStyleSpy = vi.spyOn(document.documentElement.style, 'removeProperty')
 
     await expect(ipcApi.request('system.get_native_theme')).resolves.toBe('dark')
     await expect(ipcApi.request('system.get_device_type')).resolves.toBe('web')
+    await expect(ipcApi.request('system.get_fonts')).resolves.toEqual([])
     await expect(ipcApi.request('system.shell.open_website', 'https://example.com')).resolves.toBeUndefined()
+    await expect(ipcApi.request('app.adjust_zoom', { delta: 0 })).resolves.toBe(1)
+    await expect(ipcApi.request('app.adjust_zoom', { delta: 0.1 })).resolves.toBe(1.1)
+
+    expect(setStyleSpy).toHaveBeenCalledWith('zoom', '1.1')
+
+    await expect(ipcApi.request('app.adjust_zoom', { delta: 0, reset: true })).resolves.toBe(1)
 
     expect(openSpy).toHaveBeenCalledWith('https://example.com', '_blank', 'noopener,noreferrer')
+    expect(removeStyleSpy).toHaveBeenCalledWith('zoom')
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
@@ -66,6 +77,14 @@ describe('webBridge', () => {
     await expect(ipcApi.request('mcp.protocol_install.list_pending')).resolves.toEqual([])
 
     expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('returns synchronous cleanup functions for desktop-only event listeners', () => {
+    const cleanup: unknown = window.api.shortcut.onRegistrationConflict(vi.fn())
+    if (cleanup instanceof Promise) void cleanup.catch(() => {})
+
+    expect(cleanup).toBeTypeOf('function')
+    expect((cleanup as () => void)()).toBeUndefined()
   })
 
   it('sends credentials in the request body without storing them in browser storage', async () => {

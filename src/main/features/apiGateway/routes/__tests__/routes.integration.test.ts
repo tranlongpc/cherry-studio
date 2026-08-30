@@ -418,7 +418,7 @@ describe('API gateway routes (integration)', () => {
       expect(mockIpcApiRequest).toHaveBeenCalledWith('system.get_ip_country', undefined)
     })
 
-    it('allows reading binary snapshots without exposing binary installation', async () => {
+    it('allows managing code-owned binary tools without exposing custom recipes', async () => {
       const names = ['uv', 'bun']
       const snapshots = await read(await webPost('/web/api/ipc', { route: 'binary.get_tool_snapshots', input: names }))
 
@@ -427,18 +427,31 @@ describe('API gateway routes (integration)', () => {
 
       mockIpcApiRequest.mockClear()
       const install = await read(
-        await webPost('/web/api/ipc', { route: 'binary.install_tool', input: { name: 'bun' } })
+        await webPost('/web/api/ipc', {
+          route: 'binary.install_tool',
+          input: { name: 'bun', targetVersion: 'latest' }
+        })
+      )
+      const remove = await read(await webPost('/web/api/ipc', { route: 'binary.remove_tool', input: { name: 'bun' } }))
+      const custom = await read(
+        await webPost('/web/api/ipc', { route: 'binary.install_tool', input: { name: 'custom-tool' } })
       )
 
-      expect(install.status).toBe(403)
-      expect(install.body).toEqual({ error: 'Route is not available to remote clients' })
-      expect(mockIpcApiRequest).not.toHaveBeenCalled()
+      expect(install.status).toBe(200)
+      expect(remove.status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('binary.install_tool', { name: 'bun', targetVersion: 'latest' })
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('binary.remove_tool', { name: 'bun' })
+      expect(custom.status).toBe(403)
+      expect(custom.body).toEqual({ error: 'Route is not available to remote clients' })
     })
 
     it.each([
       ['ai.agent.session.prewarm', { sessionId: 'session-1' }],
       ['ai.tool.respond_approval', { approvalId: 'approval-1', approved: true }],
+      ['app.cache_cleanup.inspect', { groups: ['normal_cache'] }],
       ['binary.get_latest_versions', false],
+      ['channel.get_statuses', undefined],
+      ['file_processing.list_available_processors', undefined],
       ['file.batch_get_dangling_states', { ids: ['01912345-6789-7abc-8def-0123456789ab'] }],
       [
         'file.batch_get_metadata',
@@ -447,12 +460,17 @@ describe('API gateway routes (integration)', () => {
       ['file.batch_get_physical_paths', { ids: ['01912345-6789-7abc-8def-0123456789ab'] }],
       ['knowledge.list_item_chunks', { baseId: 'base-1', itemId: 'item-1' }],
       ['knowledge.search', { baseId: 'base-1', query: 'test' }],
+      ['local_model.get_acceleration_capability', undefined],
+      ['local_model.get_status', { model: 'ocr' }],
       ['mcp.server.get_version', { serverId: 'server-1' }],
       ['mcp.server.list_prompts', { serverId: 'server-1' }],
       ['mcp.server.list_resources', { serverId: 'server-1' }],
       ['mcp.server.read_resource_preview', { serverId: 'server-1', uri: 'file:///readme', maxChars: 4000 }],
       ['mcp.server.refresh_tools', { serverId: 'server-1' }],
-      ['mcp.tool.abort_call', { callId: 'call-1', scope: 'topic-1' }]
+      ['mcp.tool.abort_call', { callId: 'call-1', scope: 'topic-1' }],
+      ['ovms.get_status', undefined],
+      ['ovms.is_supported', undefined],
+      ['skill.reconcile', {}]
     ])('allows the constrained web route %s', async (route, input) => {
       const { status } = await read(await webPost('/web/api/ipc', { route, input }))
 

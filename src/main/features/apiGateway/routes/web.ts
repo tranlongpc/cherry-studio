@@ -9,9 +9,12 @@ import type { AiStreamOpenRequest } from '@shared/ai/transport'
 import type { DataRequest } from '@shared/data/api/types'
 import type { CacheSyncMessage } from '@shared/data/cache/cacheTypes'
 import type { UnifiedPreferenceKeyType, UnifiedPreferenceType } from '@shared/data/preference/preferenceTypes'
+import { PRESETS_BINARY_TOOLS } from '@shared/data/presets/binaryTools'
+import { CODE_CLI_TOOL_PRESET_BY_EXECUTABLE } from '@shared/data/presets/codeCliTools'
 import { FileEntryIdSchema } from '@shared/data/types/file'
 import type { FileMetadata } from '@shared/data/types/legacyFile'
 import { IpcError } from '@shared/ipc/errors/IpcError'
+import { binaryRequestSchemas } from '@shared/ipc/schemas/binary'
 import { fileRequestSchemas } from '@shared/ipc/schemas/file'
 import { createInternalEntryInputSchema } from '@shared/ipc/schemas/file'
 import { knowledgeRequestSchemas } from '@shared/ipc/schemas/knowledge'
@@ -35,6 +38,10 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 const MAX_WEB_UPLOAD_BYTES = 100 * 1024 * 1024
+const REMOTE_BINARY_TOOL_NAMES = new Set([
+  ...PRESETS_BINARY_TOOLS.map((tool) => tool.name),
+  ...Object.keys(CODE_CLI_TOOL_PRESET_BY_EXECUTABLE)
+])
 
 function fileTypeForExtension(ext: string): FileType {
   const dotted = ext ? `.${ext.replace(/^\./, '').toLowerCase()}` : ''
@@ -98,28 +105,41 @@ const REMOTE_IPC_ROUTES = [
   'ai.text.generate',
   'ai.tool.get_result',
   'ai.tool.respond_approval',
+  'app.cache_cleanup.inspect',
   'app.get_info',
   'binary.get_latest_versions',
   'binary.get_tool_snapshots',
+  'channel.get_statuses',
   'file.batch_get_dangling_states',
   'file.batch_get_metadata',
   'file.batch_get_physical_paths',
   'file.get_metadata',
+  'file_processing.list_available_processors',
   'knowledge.create_base',
   'knowledge.get_file_path',
   'knowledge.list_item_chunks',
   'knowledge.search',
+  'local_model.get_acceleration_capability',
+  'local_model.get_status',
   'mcp.server.get_version',
   'mcp.server.list_prompts',
   'mcp.server.list_resources',
   'mcp.server.read_resource_preview',
   'mcp.server.refresh_tools',
   'mcp.tool.abort_call',
+  'ovms.get_status',
+  'ovms.is_supported',
+  'skill.reconcile',
   'system.get_ip_country'
 ] as const
 
 function isRemoteIpcRoute(route: string): boolean {
   return (REMOTE_IPC_ROUTES as readonly string[]).includes(route)
+}
+
+function isRemoteCodeOwnedBinaryInput(route: 'binary.install_tool' | 'binary.remove_tool', input: unknown): boolean {
+  const parsed = binaryRequestSchemas[route].input.safeParse(input)
+  return parsed.success && REMOTE_BINARY_TOOL_NAMES.has(parsed.data.name)
 }
 
 function isPathWithinRoot(candidate: string, rootPath: string): boolean {
@@ -506,6 +526,13 @@ export const webRoutes = new Elysia()
       }
       if (request.route === 'knowledge.add_items') {
         if (!(await isRemoteKnowledgeAddItemsInput(request.input))) {
+          set.status = 403
+          return { error: 'Route is not available to remote clients' }
+        }
+        return application.get('IpcApiService').requestFromRemote(request.route, request.input)
+      }
+      if (request.route === 'binary.install_tool' || request.route === 'binary.remove_tool') {
+        if (!isRemoteCodeOwnedBinaryInput(request.route, request.input)) {
           set.status = 403
           return { error: 'Route is not available to remote clients' }
         }

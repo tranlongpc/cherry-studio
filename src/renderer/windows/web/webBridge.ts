@@ -18,6 +18,7 @@ const eventClientId = crypto.randomUUID()
 const topicSubscriptionCounts = new Map<string, number>()
 let eventStreamReady: Promise<void> | null = null
 let eventStreamController: AbortController | null = null
+let browserZoomFactor = 1
 
 type WebAiStreamEvent = {
   topicId: string
@@ -268,6 +269,22 @@ function unsupported(name: string) {
   return () => Promise.reject(new Error(`${name} is not available in the web client`))
 }
 
+function adjustBrowserZoom(delta: number, reset: boolean): number {
+  if (reset) {
+    browserZoomFactor = 1
+    document.documentElement.style.removeProperty('zoom')
+    return browserZoomFactor
+  }
+  if (delta === 0) return browserZoomFactor
+
+  const nextZoomFactor = Number((browserZoomFactor + delta).toFixed(1))
+  if (nextZoomFactor >= 0.5 && nextZoomFactor <= 2) {
+    browserZoomFactor = nextZoomFactor
+    document.documentElement.style.setProperty('zoom', String(browserZoomFactor))
+  }
+  return browserZoomFactor
+}
+
 export function installWebBridge(): void {
   const noEvents: (...args: Listener[]) => () => void = () => () => {}
   const api = {
@@ -327,6 +344,7 @@ export function installWebBridge(): void {
           })
         }
         if (route === 'system.get_device_type') return Promise.resolve({ ok: true, data: 'web' })
+        if (route === 'system.get_fonts') return Promise.resolve({ ok: true, data: [] })
         if (route === 'system.shell.open_website') {
           window.open(input, '_blank', 'noopener,noreferrer')
           return Promise.resolve({ ok: true, data: undefined })
@@ -336,6 +354,9 @@ export function installWebBridge(): void {
         }
         if (route === 'window.get_init_data') return Promise.resolve({ ok: true, data: null })
         if (route === 'window.is_maximized') return Promise.resolve({ ok: true, data: false })
+        if (route === 'app.adjust_zoom') {
+          return Promise.resolve({ ok: true, data: adjustBrowserZoom(input.delta, input.reset ?? false) })
+        }
         if (route === 'mcp.protocol_install.list_pending') return Promise.resolve({ ok: true, data: [] })
         if (route === 'translate.open') {
           return subscribeTopic(input.streamId)
@@ -385,6 +406,9 @@ export function installWebBridge(): void {
         window.open(url, '_blank', 'noopener,noreferrer')
         return Promise.resolve()
       }
+    },
+    shortcut: {
+      onRegistrationConflict: noEvents
     },
     storageMonitor: {
       getHealth: unsupported('storageMonitor.getHealth'),
