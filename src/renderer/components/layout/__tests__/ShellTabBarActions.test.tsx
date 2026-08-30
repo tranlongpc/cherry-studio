@@ -90,25 +90,6 @@ vi.mock('../../WindowControls', () => ({
   WindowControls: () => null
 }))
 
-vi.mock('../HelpMenu', () => ({
-  HelpMenu: ({
-    layout,
-    onFeedbackClick,
-    onOverlayOpenChange
-  }: {
-    layout: string
-    onFeedbackClick: () => void
-    onOverlayOpenChange?: (open: boolean) => void
-  }) => (
-    <>
-      <button aria-label="Help & Feedback" type="button" onClick={() => onOverlayOpenChange?.(true)}>
-        help-{layout}
-      </button>
-      <button aria-label="Open feedback" type="button" onClick={onFeedbackClick} />
-    </>
-  )
-}))
-
 import { ShellTabBarActions, SidebarShellActions } from '../ShellTabBarActions'
 
 afterEach(() => {
@@ -213,7 +194,7 @@ describe('ShellTabBarActions', () => {
   })
 
   it('does not render the theme toggle in the sidebar footer action', () => {
-    render(<SidebarShellActions layout="icon" onFeedbackClick={vi.fn()} onSettingsClick={mocks.openSettingsTab} />)
+    render(<SidebarShellActions layout="icon" onSettingsClick={mocks.openSettingsTab} />)
 
     expect(screen.queryByRole('button', { name: 'Light' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /settings/i })).toHaveAttribute('data-slot', 'button')
@@ -221,58 +202,27 @@ describe('ShellTabBarActions', () => {
       'text-muted-foreground',
       'dark:text-muted-foreground'
     )
-    expect(screen.getByRole('button', { name: 'Help & Feedback' })).toHaveTextContent('help-icon')
+    expect(screen.queryByRole('button', { name: 'help.title' })).not.toBeInTheDocument()
   })
 
   it('opens the settings tab from the sidebar footer action', async () => {
     const user = userEvent.setup()
 
-    render(<SidebarShellActions layout="icon" onFeedbackClick={vi.fn()} onSettingsClick={mocks.openSettingsTab} />)
+    render(<SidebarShellActions layout="icon" onSettingsClick={mocks.openSettingsTab} />)
 
     await user.click(screen.getByRole('button', { name: /settings/i }))
 
     expect(mocks.openSettingsTab).toHaveBeenCalledTimes(1)
   })
 
-  it('forwards help overlay state from the sidebar footer', async () => {
-    const user = userEvent.setup()
-    const onOverlayOpenChange = vi.fn()
-
-    render(
-      <SidebarShellActions
-        layout="icon"
-        onFeedbackClick={vi.fn()}
-        onSettingsClick={mocks.openSettingsTab}
-        onOverlayOpenChange={onOverlayOpenChange}
-      />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Help & Feedback' }))
-
-    expect(onOverlayOpenChange).toHaveBeenCalledWith(true)
-  })
-
-  it('forwards feedback requests from the sidebar footer', async () => {
-    const user = userEvent.setup()
-    const onFeedbackClick = vi.fn()
-
-    render(
-      <SidebarShellActions layout="icon" onFeedbackClick={onFeedbackClick} onSettingsClick={mocks.openSettingsTab} />
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Open feedback' }))
-
-    expect(onFeedbackClick).toHaveBeenCalledOnce()
-  })
-
   it('renders sidebar full footer actions with visible labels', () => {
-    render(<SidebarShellActions layout="full" onFeedbackClick={vi.fn()} onSettingsClick={mocks.openSettingsTab} />)
+    render(<SidebarShellActions layout="full" onSettingsClick={mocks.openSettingsTab} />)
 
     expect(screen.queryByRole('button', { name: 'Light' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /settings/i })).toHaveAttribute('data-slot', 'button')
     expect(screen.getByRole('button', { name: /settings/i })).toHaveClass('justify-start', 'text-foreground')
     expect(screen.getByRole('button', { name: /settings/i })).not.toHaveClass('text-muted-foreground')
     expect(screen.getByRole('button', { name: /settings/i })).toHaveTextContent('Settings')
-    expect(screen.getByRole('button', { name: 'Help & Feedback' })).toHaveTextContent('help-full')
+    expect(screen.queryByRole('button', { name: 'help.title' })).not.toBeInTheDocument()
   })
 })

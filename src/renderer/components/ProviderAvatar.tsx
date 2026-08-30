@@ -1,6 +1,7 @@
 import type { CompoundIcon } from '@cherrystudio/ui'
 import { Avatar, AvatarFallback, AvatarImage } from '@cherrystudio/ui'
 import { resolveProviderIconRef, useIcon } from '@cherrystudio/ui/icons'
+import { resolveFileResourceUrl } from '@renderer/utils/filePreview'
 import { getFirstCharacter } from '@renderer/utils/naming'
 import { generateColorFromChar, getForegroundColor } from '@renderer/utils/style'
 import React from 'react'
@@ -62,9 +63,10 @@ export const ProviderAvatarPrimitive: React.FC<ProviderAvatarPrimitiveProps> = (
   // If logo source is a string URL, render image avatar. An unresolved `icon:` reference
   // (unknown id) is not a URL — fall through to the initial-character fallback below.
   if (typeof effectiveLogo === 'string' && !effectiveLogo.startsWith('icon:')) {
+    const imageSrc = resolveFileResourceUrl(effectiveLogo)
     return (
       <Avatar className={className} style={{ width: size, height: size, ...style }}>
-        <AvatarImage src={effectiveLogo} className="object-cover" draggable={false} />
+        <AvatarImage src={imageSrc} className="object-cover" draggable={false} />
         <AvatarFallback style={{ backgroundColor, color }}>{fallbackContent}</AvatarFallback>
       </Avatar>
     )

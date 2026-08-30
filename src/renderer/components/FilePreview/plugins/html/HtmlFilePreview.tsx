@@ -5,8 +5,7 @@ import HtmlPreviewFrame, {
   HTML_PREVIEW_RESTRICTED_CSP,
   HTML_PREVIEW_RESTRICTED_SANDBOX
 } from '@renderer/components/CodeBlockView/HtmlPreviewFrame'
-import { getFilePreviewExtension } from '@renderer/utils/filePreview'
-import { toSafeFileUrl } from '@shared/utils/file'
+import { getFilePreviewContentBaseUrl } from '@renderer/utils/filePreview'
 import FileCode from 'lucide-react/dist/esm/icons/file-code'
 import FileWarning from 'lucide-react/dist/esm/icons/file-warning'
 import LoaderCircle from 'lucide-react/dist/esm/icons/loader-circle'
@@ -139,7 +138,7 @@ export default function HtmlFilePreview({
 }: FilePreviewPluginProps) {
   const [mode, setMode] = useState<HtmlFilePreviewMode>('preview')
   const [loadState, setLoadState] = useState<HtmlFileLoadState>({ status: 'loading' })
-  const baseUrl = useMemo(() => toSafeFileUrl(filePath, getFilePreviewExtension(filePath)), [filePath])
+  const baseUrl = useMemo(() => getFilePreviewContentBaseUrl(filePath), [filePath])
   const effectiveMode = type === 'artifact' ? 'preview' : mode
 
   useEffect(() => {

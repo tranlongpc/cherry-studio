@@ -43,10 +43,27 @@ export function getFilePreviewResourceUrl(filePath: string, refreshKey: number):
   return `/web/api/file-content?${search.toString()}`
 }
 
+export function getFilePreviewContentBaseUrl(filePath: string): string {
+  const normalizedPath = normalizeFilePreviewPath(filePath)
+  if (!isWeb) return toSafeFileUrl(normalizedPath, getFilePreviewExtension(normalizedPath))
+
+  const bytes = new TextEncoder().encode(normalizedPath)
+  const token = btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(''))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '')
+  return `/web/api/file-content-tree/${token}/`
+}
+
 export function getManagedFileResourceUrl(filePath: string, extension: string | null, refreshKey = 0): string {
   const fileUrl = toSafeFileUrl(normalizeFilePreviewPath(filePath), extension)
-  if (!isWeb) return fileUrl
-  const search = new URLSearchParams({ path: fileUrlToPath(fileUrl), v: String(refreshKey) })
+  return resolveFileResourceUrl(fileUrl, refreshKey)
+}
+
+export function resolveFileResourceUrl(source: string, refreshKey = 0): string {
+  if (!isWeb || !source.startsWith('file://')) return source
+
+  const search = new URLSearchParams({ path: fileUrlToPath(new URL(source)), v: String(refreshKey) })
   return `/web/api/file-content?${search.toString()}`
 }
 

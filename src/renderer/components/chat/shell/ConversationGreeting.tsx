@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@cherrystudio/ui'
 import { useChatBottomOverlayInset } from '@renderer/components/chat/layout/ChatViewportInsetContext'
 import EmojiIcon from '@renderer/components/EmojiIcon'
+import { resolveFileResourceUrl } from '@renderer/utils/filePreview'
 import { isEmoji } from '@renderer/utils/naming'
 
 export interface ConversationGreetingProps {
@@ -30,7 +31,7 @@ export function ConversationGreeting({ avatar, title }: ConversationGreetingProp
           <EmojiIcon emoji={avatar} className="mr-0" size={48} fontSize={28} />
         ) : (
           <Avatar className="size-12">
-            <AvatarImage className="size-full object-cover" src={avatar} />
+            <AvatarImage className="size-full object-cover" src={resolveFileResourceUrl(avatar)} />
             <AvatarFallback className="text-2xl">🤖</AvatarFallback>
           </Avatar>
         ))}

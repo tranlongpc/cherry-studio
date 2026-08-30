@@ -10,13 +10,15 @@ vi.mock('@renderer/utils/platform', () => ({
 
 import {
   createFilePreviewTabTarget,
+  getFilePreviewContentBaseUrl,
   getFilePreviewExtension,
   getFilePreviewFileName,
   getFilePreviewRefreshKey,
   getFilePreviewResourceUrl,
   getManagedFileResourceUrl,
   normalizeFilePreviewPath,
-  parseFilePreviewRouteSearch
+  parseFilePreviewRouteSearch,
+  resolveFileResourceUrl
 } from '../filePreview'
 
 beforeEach(() => {
@@ -82,6 +84,17 @@ describe('file preview route target', () => {
     )
   })
 
+  it('builds a browser base URL that keeps relative HTML resources behind the authenticated route', () => {
+    const filePath = '/Volumes/Data/Notes/Caf\u00e9/index.html'
+
+    expect(getFilePreviewContentBaseUrl(filePath)).toBe('file:///Volumes/Data/Notes/Caf%C3%A9/index.html')
+
+    platformState.isWeb = true
+    const baseUrl = getFilePreviewContentBaseUrl(filePath)
+    expect(baseUrl).toMatch(/^\/web\/api\/file-content-tree\/[A-Za-z0-9_-]+\/$/)
+    expect(new URL('images/cover.png', `https://example.com${baseUrl}`).pathname).toBe(`${baseUrl}images/cover.png`)
+  })
+
   it('uses authenticated browser URLs without weakening desktop file URL safety', () => {
     expect(getManagedFileResourceUrl('/Volumes/Data/Files/image.png', 'png')).toBe(
       'file:///Volumes/Data/Files/image.png'
@@ -92,6 +105,19 @@ describe('file preview route target', () => {
     expect(getManagedFileResourceUrl('/Volumes/Data/Files/image.png', 'png')).toBe(
       '/web/api/file-content?path=%2FVolumes%2FData%2FFiles%2Fimage.png&v=0'
     )
+  })
+
+  it('resolves stored file URLs only for the web renderer', () => {
+    const source = 'file:///Volumes/Data/Files/image%20one.png'
+
+    expect(resolveFileResourceUrl(source)).toBe(source)
+    expect(resolveFileResourceUrl('https://example.com/image.png')).toBe('https://example.com/image.png')
+
+    platformState.isWeb = true
+    expect(resolveFileResourceUrl(source)).toBe(
+      '/web/api/file-content?path=%2FVolumes%2FData%2FFiles%2Fimage+one.png&v=0'
+    )
+    expect(resolveFileResourceUrl('data:image/png;base64,abc')).toBe('data:image/png;base64,abc')
   })
 
   it('builds the same URL for lexically equivalent paths', () => {

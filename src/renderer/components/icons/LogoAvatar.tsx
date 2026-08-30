@@ -1,5 +1,6 @@
 import type { CompoundIcon } from '@cherrystudio/ui'
 import { Avatar, AvatarImage } from '@cherrystudio/ui'
+import { resolveFileResourceUrl } from '@renderer/utils/filePreview'
 import type { FC } from 'react'
 
 interface Props {
@@ -29,7 +30,7 @@ const LogoAvatar: FC<Props> = ({ logo, size = 32, shape = 'rounded', className, 
     <Avatar
       className={`${borderClass} ${shape === 'circle' ? 'rounded-full' : 'rounded-[20%]'} ${className ?? ''}`.trim()}
       style={{ width: size, height: size }}>
-      <AvatarImage alt={alt} src={logo} />
+      <AvatarImage alt={alt} src={resolveFileResourceUrl(logo)} />
     </Avatar>
   )
 }

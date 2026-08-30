@@ -1,4 +1,5 @@
 import { useBundledCatalog } from '@renderer/hooks/useBundledCatalog'
+import { resolveFileResourceUrl } from '@renderer/utils/filePreview'
 import { joinPath } from '@renderer/utils/path'
 import { AbsoluteFilePathSchema } from '@shared/types/file'
 import { toFileUrl } from '@shared/utils/file'
@@ -76,7 +77,7 @@ async function loadPaintingTemplateCatalog(resourcesPath: string, language: stri
     const previewPath = AbsoluteFilePathSchema.parse(joinPath(resourceRoot, `images/${id}.webp`))
     return {
       id,
-      imageUrl: toFileUrl(previewPath),
+      imageUrl: resolveFileResourceUrl(toFileUrl(previewPath)),
       ...translation
     }
   })

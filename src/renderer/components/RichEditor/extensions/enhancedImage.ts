@@ -3,6 +3,7 @@ import Image, { type ImageOptions } from '@tiptap/extension-image'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 
 import ImagePlaceholderNodeView from '../components/placeholder/ImagePlaceholderNodeView'
+import RichEditorImageNodeView from '../components/RichEditorImageNodeView'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -78,6 +79,10 @@ export const EnhancedImage = Image.extend<EnhancedImageOptions>({
           })
         }
     }
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(RichEditorImageNodeView)
   },
 
   addExtensions() {

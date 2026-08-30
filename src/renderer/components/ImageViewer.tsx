@@ -10,6 +10,7 @@ import { loggerService } from '@logger'
 import { CommandContextMenu, type CommandContextMenuExtraItem } from '@renderer/components/command'
 import { toast } from '@renderer/services/toast'
 import { removeSpecialCharactersForFileName } from '@renderer/utils/file'
+import { resolveFileResourceUrl } from '@renderer/utils/filePreview'
 import {
   blobToDataUrl,
   convertImageToPng,
@@ -72,6 +73,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
   const { t } = useTranslation()
   const previewConfig = typeof preview === 'object' ? preview : undefined
   const previewEnabled = preview !== false
+  const resolvedSrc = resolveFileResourceUrl(src)
   const items = React.useMemo<ImagePreviewItem[]>(() => {
     return (
       previewConfig?.items ?? [
@@ -81,10 +83,13 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
           src
         }
       ]
-    )
+    ).map((item) => ({
+      ...item,
+      src: resolveFileResourceUrl(item.src)
+    }))
   }, [alt, previewConfig?.items, src])
 
-  const initialIndex = React.useMemo(() => getPreviewIndex(items, src), [items, src])
+  const initialIndex = React.useMemo(() => getPreviewIndex(items, resolvedSrc), [items, resolvedSrc])
   const [open, setOpen] = React.useState(false)
   const [activeIndex, setActiveIndex] = React.useState(initialIndex)
 
@@ -196,10 +201,10 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
     () => [saveAction, ...(previewConfig?.toolbarActions ?? [])],
     [previewConfig?.toolbarActions, saveAction]
   )
-  const displayItem = items.find((item) => item.src === src) ?? {
+  const displayItem = items.find((item) => item.src === resolvedSrc) ?? {
     alt: typeof alt === 'string' ? alt : undefined,
     id: src,
-    src
+    src: resolvedSrc
   }
   const displayIndex = Math.max(
     0,
@@ -263,7 +268,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         }
       }}
       onContextMenu={onContextMenu}
-      src={src}
+      src={resolvedSrc}
       {...props}
     />
   )

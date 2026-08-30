@@ -789,6 +789,69 @@ describe('API gateway routes (integration)', () => {
         await rm(filesRoot, { recursive: true, force: true })
       }
     })
+
+    it('serves bundled data resources without exposing other application resources', async () => {
+      const resourcesRoot = await mkdtemp(join(tmpdir(), 'cherry-web-resources-'))
+      const dataRoot = join(resourcesRoot, 'data')
+      const imagePath = join(dataRoot, 'painting-templates', 'preview.webp')
+      const privatePath = join(resourcesRoot, 'private.txt')
+      await mkdir(dirname(imagePath), { recursive: true })
+      await writeFile(imagePath, new Uint8Array([82, 73, 70, 70]))
+      await writeFile(privatePath, 'private')
+      vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) => {
+        const root = key === 'app.extra_resources' ? resourcesRoot : `/mock/${key}`
+        return filename ? join(root, filename) : root
+      })
+
+      try {
+        const response = await get(app, `/web/api/file-content?path=${encodeURIComponent(imagePath)}`, { cookie })
+        const readResponse = await read(
+          await webPost('/web/api/file', {
+            action: 'readManaged',
+            filePath: imagePath
+          })
+        )
+        const outside = await get(app, `/web/api/file-content?path=${encodeURIComponent(privatePath)}`, { cookie })
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get('content-type')).toBe('image/webp')
+        expect(readResponse).toEqual({ status: 200, body: { data: [82, 73, 70, 70] } })
+        expect(outside.status).toBe(500)
+      } finally {
+        vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) =>
+          filename ? `/mock/${key}/${filename}` : `/mock/${key}`
+        )
+        await rm(resourcesRoot, { recursive: true, force: true })
+      }
+    })
+
+    it('serves relative HTML preview resources within the managed file root', async () => {
+      const filesRoot = await mkdtemp(join(tmpdir(), 'cherry-web-html-resource-'))
+      const htmlPath = join(filesRoot, 'preview', 'index.html')
+      const imagePath = join(filesRoot, 'preview', 'images', 'cover.png')
+      await mkdir(dirname(imagePath), { recursive: true })
+      await writeFile(htmlPath, '<img src="images/cover.png">')
+      await writeFile(imagePath, new Uint8Array([137, 80, 78, 71]))
+      vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) => {
+        const root = key === 'feature.files.data' ? filesRoot : `/mock/${key}`
+        return filename ? join(root, filename) : root
+      })
+
+      try {
+        const token = Buffer.from(htmlPath).toString('base64url')
+        const response = await get(app, `/web/api/file-content-tree/${token}/images/cover.png`, { cookie })
+        const unauthorized = await get(app, `/web/api/file-content-tree/${token}/images/cover.png`, {})
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get('content-type')).toBe('image/png')
+        expect(unauthorized.status).toBe(401)
+      } finally {
+        vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) =>
+          filename ? `/mock/${key}/${filename}` : `/mock/${key}`
+        )
+        await rm(filesRoot, { recursive: true, force: true })
+      }
+    })
   })
 
   describe('OpenAPI docs — per-language translation + switcher', () => {

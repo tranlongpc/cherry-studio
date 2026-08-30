@@ -21,7 +21,7 @@ import {
   tabBelongsToApp
 } from '@renderer/utils/sidebar'
 import type { Ref } from 'react'
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SidebarShellActions } from '../layout/ShellTabBarActions'
@@ -37,7 +37,6 @@ import {
 import UserPopup from '../UserPopup'
 import { resolveSidebarEntry, type SidebarVariantContext } from './sidebarVariants'
 
-const FeedbackDialog = lazy(() => import('../feedback/FeedbackDialog'))
 const REQUIRED_SIDEBAR_FAVORITE_SET = new Set<SidebarAppId>(REQUIRED_SIDEBAR_FAVORITES)
 
 export default function Sidebar({ ref }: { ref?: Ref<HTMLDivElement | null> }) {
@@ -76,8 +75,6 @@ export default function Sidebar({ ref }: { ref?: Ref<HTMLDivElement | null> }) {
   // follow the cursor without persisting unstable widths.
   const [sidebarWidth, setSidebarWidth] = usePersistCache('ui.sidebar.width')
   const [previewSidebarWidth, setPreviewSidebarWidth] = useState<number | null>(null)
-  const [feedbackDialogMounted, setFeedbackDialogMounted] = useState(false)
-  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const activeSidebarWidth = previewSidebarWidth ?? sidebarWidth
 
   useLayoutEffect(() => {
@@ -209,11 +206,6 @@ export default function Sidebar({ ref }: { ref?: Ref<HTMLDivElement | null> }) {
   const handleOpenSettingsTab = useCallback(() => {
     openSettingsTab()
   }, [])
-  const handleOpenFeedback = useCallback(() => {
-    setFeedbackDialogMounted(true)
-    setFeedbackOpen(true)
-  }, [])
-
   const handleOpenMiniAppTab = useCallback(
     (appId: string, options?: { inNewTab?: boolean }) => {
       const app = openableMiniAppById.get(appId)
@@ -357,13 +349,8 @@ export default function Sidebar({ ref }: { ref?: Ref<HTMLDivElement | null> }) {
     active: { activeItem, activeTabId: activeMiniAppId },
     title: sidebarUser.name,
     logo: sidebarLogo,
-    actions: (footerLayout: SidebarVisibleLayout, onOverlayOpenChange?: (open: boolean) => void) => (
-      <SidebarShellActions
-        layout={footerLayout}
-        onFeedbackClick={handleOpenFeedback}
-        onSettingsClick={handleOpenSettingsTab}
-        onOverlayOpenChange={onOverlayOpenChange}
-      />
+    actions: (footerLayout: SidebarVisibleLayout) => (
+      <SidebarShellActions layout={footerLayout} onSettingsClick={handleOpenSettingsTab} />
     ),
     onEntriesReorder: handleReorder
   }
@@ -386,11 +373,6 @@ export default function Sidebar({ ref }: { ref?: Ref<HTMLDivElement | null> }) {
           {...sidebarProps}
         />
       )}
-      {feedbackDialogMounted ? (
-        <Suspense fallback={null}>
-          <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
-        </Suspense>
-      ) : null}
     </div>
   )
 }

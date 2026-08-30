@@ -1,4 +1,5 @@
 import { getMiniAppsLogoRef, useMiniAppLogo } from '@renderer/components/icons/miniAppsLogo'
+import { resolveFileResourceUrl } from '@renderer/utils/filePreview'
 import type { MiniApp } from '@shared/data/types/miniApp'
 import type { FC } from 'react'
 
@@ -20,7 +21,7 @@ const MiniAppIcon: FC<Props> = ({ app, appearance = 'avatar', size = 48, style }
 
   // A preset key resolves to a CompoundIcon; an uploaded logo arrives as a
   // ready `logoSrc` URL (or a pre-resolved url on `logo` for sidebar tabs).
-  const src = app.logoSrc ?? app.logo
+  const src = resolveFileResourceUrl(app.logoSrc ?? app.logo ?? '')
 
   // CompoundIcon: default usages keep the Avatar wrapper; Launchpad-style tiles render the logo itself.
   if (logoRef) {

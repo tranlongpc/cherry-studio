@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@cherrystudio/ui'
 import { cn } from '@cherrystudio/ui/lib/utils'
 import EmojiIcon from '@renderer/components/EmojiIcon'
+import { resolveFileResourceUrl } from '@renderer/utils/filePreview'
 import { isEmoji } from '@renderer/utils/naming'
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 
@@ -44,7 +45,7 @@ const MessageAvatar = ({
         />
       ) : (
         <Avatar className={MESSAGE_AVATAR_INNER_CLASS} style={!avatar ? fallbackAvatarStyle : undefined}>
-          {avatar && <AvatarImage className={MESSAGE_AVATAR_IMAGE_CLASS} src={avatar} />}
+          {avatar && <AvatarImage className={MESSAGE_AVATAR_IMAGE_CLASS} src={resolveFileResourceUrl(avatar)} />}
           {fallback !== undefined && (
             <AvatarFallback className={MESSAGE_AVATAR_FALLBACK_CLASS}>{fallback}</AvatarFallback>
           )}

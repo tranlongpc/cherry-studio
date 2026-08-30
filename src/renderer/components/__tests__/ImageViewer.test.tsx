@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ImageViewer from '../ImageViewer'
 
 const mocks = vi.hoisted(() => ({
+  platformState: { isWeb: false },
   fetch: vi.fn(),
   fsRead: vi.fn(),
   transformImageToPng: vi.fn(),
@@ -16,6 +17,18 @@ const mocks = vi.hoisted(() => ({
     writeText: vi.fn()
   },
   saveImage: vi.fn()
+}))
+
+vi.mock('@renderer/utils/platform', () => ({
+  platform: 'web',
+  isDev: false,
+  isLinux: false,
+  isMac: false,
+  isProd: true,
+  isWin: false,
+  get isWeb() {
+    return mocks.platformState.isWeb
+  }
 }))
 
 vi.mock('@renderer/utils/image', async (importOriginal) => {
@@ -40,6 +53,7 @@ class MockClipboardItem {
 describe('ImageViewer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.platformState.isWeb = false
 
     mocks.fetch.mockResolvedValue({
       blob: async () => new Blob(['remote'], { type: 'image/webp' })
@@ -72,6 +86,17 @@ describe('ImageViewer', () => {
     fireEvent.click(screen.getByRole('img', { name: 'Example image' }))
 
     expect(screen.queryByTestId('image-preview-dialog')).not.toBeInTheDocument()
+  })
+
+  it('renders stored file URLs through the authenticated web resource route', () => {
+    mocks.platformState.isWeb = true
+
+    render(<ImageViewer src="file:///Volumes/Data/Files/image%20one.png" alt="Example image" preview={false} />)
+
+    expect(screen.getByRole('img', { name: 'Example image' })).toHaveAttribute(
+      'src',
+      '/web/api/file-content?path=%2FVolumes%2FData%2FFiles%2Fimage+one.png&v=0'
+    )
   })
 
   it('copies image source from the context menu', async () => {

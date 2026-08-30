@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve, sep } from 'node:path'
@@ -241,6 +242,7 @@ function managedReadPath(candidate: string): string {
     application.getPath('feature.files.data'),
     application.getPath('feature.notes.data'),
     application.getPath('feature.knowledgebase.data'),
+    join(application.getPath('app.extra_resources'), 'data'),
     ...agentWorkspaceService.list({ includeSystem: true }).map((workspace) => workspace.path)
   ].map((path) => resolve(path))
   if (!roots.some((root) => isPathWithinRoot(target, root))) {
@@ -509,6 +511,25 @@ export const webRoutes = new Elysia()
         return { error: 'Missing file path' }
       }
       const target = managedReadPath(query.path)
+      const content = await readFile(target)
+      return new Response(content, {
+        headers: {
+          'cache-control': 'private, no-store',
+          'content-type': mime.getType(target) ?? 'application/octet-stream',
+          'x-content-type-options': 'nosniff'
+        }
+      })
+    },
+    { detail: { hide: true } }
+  )
+  .get(
+    '/web/api/file-content-tree/:file/*',
+    async ({ params, request, set }) => {
+      const failure = authorize(request, set)
+      if (failure) return failure
+
+      const sourcePath = Buffer.from(params.file, 'base64url').toString('utf8')
+      const target = managedReadPath(resolve(dirname(sourcePath), params['*']))
       const content = await readFile(target)
       return new Response(content, {
         headers: {
