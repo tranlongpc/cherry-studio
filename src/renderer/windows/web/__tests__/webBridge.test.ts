@@ -39,8 +39,13 @@ describe('webBridge', () => {
 
   it('resolves browser-native capabilities without calling the server', async () => {
     const fetchSpy = vi.spyOn(window, 'fetch')
-    await expect(window.api.ipcApi.request('system.get_native_theme', undefined)).resolves.toBe('dark')
-    await expect(window.api.ipcApi.request('system.get_device_type', undefined)).resolves.toBe('web')
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+
+    await expect(ipcApi.request('system.get_native_theme')).resolves.toBe('dark')
+    await expect(ipcApi.request('system.get_device_type')).resolves.toBe('web')
+    await expect(ipcApi.request('system.shell.open_website', 'https://example.com')).resolves.toBeUndefined()
+
+    expect(openSpy).toHaveBeenCalledWith('https://example.com', '_blank', 'noopener,noreferrer')
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
@@ -49,6 +54,16 @@ describe('webBridge', () => {
 
     await expect(ipcApi.request('navigation.protocol_dispatch_ready')).resolves.toBeUndefined()
     await expect(ipcApi.request('navigation.ack_open_route', { requestId: 1 })).resolves.toBeUndefined()
+
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('resolves native window and protocol bootstrap state locally', async () => {
+    const fetchSpy = vi.spyOn(window, 'fetch')
+
+    await expect(ipcApi.request('window.get_init_data')).resolves.toBeNull()
+    await expect(ipcApi.request('window.is_maximized')).resolves.toBe(false)
+    await expect(ipcApi.request('mcp.protocol_install.list_pending')).resolves.toEqual([])
 
     expect(fetchSpy).not.toHaveBeenCalled()
   })
@@ -164,7 +179,7 @@ describe('webBridge', () => {
 
     await ipcApi.request('file.tree.create', { rootPath: AbsoluteFilePathSchema.parse('/managed/Agents') })
 
-    const eventClientId = (fetchSpy.mock.calls[0][1]?.headers as Record<string, string>)['x-cherry-web-client-id']
+    const eventClientId = (fetchSpy.mock.calls[0][1]!.headers as Record<string, string>)['x-cherry-web-client-id']
     expect(fetchSpy.mock.calls[1][0]).toBe('/web/api/ipc')
     expect(JSON.parse(String(fetchSpy.mock.calls[1][1]?.body))).toEqual({
       route: 'file.tree.create',

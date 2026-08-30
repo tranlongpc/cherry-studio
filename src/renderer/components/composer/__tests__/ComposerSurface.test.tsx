@@ -4780,6 +4780,11 @@ describe('ComposerSurface', () => {
   })
 
   it('does not restore editor focus after an async send when focus moved elsewhere', async () => {
+    const animationFrames: FrameRequestCallback[] = []
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrames.push(callback)
+      return animationFrames.length
+    })
     let resolveSend: (() => void) | undefined
     const onSendDraft = vi.fn(
       () =>
@@ -4812,8 +4817,57 @@ describe('ComposerSurface', () => {
       resolveSend?.()
       await Promise.resolve()
     })
+    act(() => {
+      animationFrames.splice(0).forEach((callback) => callback(0))
+    })
 
     expect(mocks.focus).not.toHaveBeenCalled()
+    requestAnimationFrameSpy.mockRestore()
+  })
+
+  it('restores editor focus after the async send update is rendered', async () => {
+    const animationFrames: FrameRequestCallback[] = []
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      animationFrames.push(callback)
+      return animationFrames.length
+    })
+    let resolveSend: (() => void) | undefined
+    const onSendDraft = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSend = resolve
+        })
+    )
+    render(
+      <>
+        <button type="button" data-testid="focus-target" />
+        <ComposerSurface {...baseProps} onSendDraft={onSendDraft} />
+      </>
+    )
+    await waitFor(() => expect(mocks.editorOptions).toBeDefined())
+    screen.getByTestId('focus-target').focus()
+    mocks.focus.mockClear()
+
+    expect(
+      mocks.editorOptions.editorProps.handleKeyDown(
+        null,
+        new KeyboardEvent('keydown', { key: 'Enter', cancelable: true })
+      )
+    ).toBe(true)
+
+    await act(async () => {
+      resolveSend?.()
+      await Promise.resolve()
+    })
+
+    expect(mocks.focus).not.toHaveBeenCalled()
+
+    act(() => {
+      animationFrames.splice(0).forEach((callback) => callback(0))
+    })
+
+    expect(mocks.focus).toHaveBeenCalledTimes(1)
+    requestAnimationFrameSpy.mockRestore()
   })
 
   it('blocks a newline that would exceed the maximum composer length', async () => {

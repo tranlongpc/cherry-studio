@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve, sep } from 'node:path'
 
 import { application } from '@application'
@@ -14,6 +14,7 @@ import type { FileMetadata } from '@shared/data/types/legacyFile'
 import { IpcError } from '@shared/ipc/errors/IpcError'
 import { fileRequestSchemas } from '@shared/ipc/schemas/file'
 import { createInternalEntryInputSchema } from '@shared/ipc/schemas/file'
+import { knowledgeRequestSchemas } from '@shared/ipc/schemas/knowledge'
 import { FILE_TYPE, type FileType } from '@shared/types/file'
 import type { TreeMutationPushPayload } from '@shared/utils/file'
 import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/utils/file'
@@ -78,6 +79,7 @@ const REMOTE_IPC_ROUTES = [
   'ai.agent.delete',
   'ai.agent.session.close_warm',
   'ai.agent.session.delete',
+  'ai.agent.session.prewarm',
   'ai.agent.session.refresh_context_usage',
   'ai.agent.session.reuse_or_create',
   'ai.agent.session.stop_background_task',
@@ -95,15 +97,61 @@ const REMOTE_IPC_ROUTES = [
   'ai.stream.abort',
   'ai.text.generate',
   'ai.tool.get_result',
+  'ai.tool.respond_approval',
   'app.get_info',
+  'binary.get_latest_versions',
   'binary.get_tool_snapshots',
+  'file.batch_get_dangling_states',
+  'file.batch_get_metadata',
+  'file.batch_get_physical_paths',
   'file.get_metadata',
   'knowledge.create_base',
+  'knowledge.get_file_path',
+  'knowledge.list_item_chunks',
+  'knowledge.search',
+  'mcp.server.get_version',
+  'mcp.server.list_prompts',
+  'mcp.server.list_resources',
+  'mcp.server.read_resource_preview',
+  'mcp.server.refresh_tools',
+  'mcp.tool.abort_call',
   'system.get_ip_country'
 ] as const
 
 function isRemoteIpcRoute(route: string): boolean {
   return (REMOTE_IPC_ROUTES as readonly string[]).includes(route)
+}
+
+function isPathWithinRoot(candidate: string, rootPath: string): boolean {
+  const target = resolve(candidate)
+  const root = resolve(rootPath)
+  return target === root || target.startsWith(`${root}${sep}`)
+}
+
+async function isExistingPathWithinRoot(candidate: string, rootPath: string): Promise<boolean> {
+  try {
+    const [target, root] = await Promise.all([realpath(candidate), realpath(rootPath)])
+    return isPathWithinRoot(target, root)
+  } catch {
+    return false
+  }
+}
+
+async function isRemoteKnowledgeAddItemsInput(input: unknown): Promise<boolean> {
+  const parsed = knowledgeRequestSchemas['knowledge.add_items'].input.safeParse(input)
+  if (!parsed.success) return false
+
+  const accepted = await Promise.all(
+    parsed.data.items.map((item) => {
+      if (item.type === 'file') {
+        if (item.data.indexedPath) return false
+        return isExistingPathWithinRoot(item.data.path, application.getPath('feature.files.data'))
+      }
+      if (item.type === 'url') return !item.data.snapshotPath
+      return item.type === 'note'
+    })
+  )
+  return accepted.every(Boolean)
 }
 
 function authorize(request: Request, set: { status?: number | string }) {
@@ -152,10 +200,12 @@ type FileRequest =
 
 function managedReadPath(candidate: string): string {
   const target = resolve(candidate)
-  const roots = [application.getPath('feature.files.data'), application.getPath('feature.notes.data')].map((path) =>
-    resolve(path)
-  )
-  if (!roots.some((root) => target === root || target.startsWith(`${root}${sep}`))) {
+  const roots = [
+    application.getPath('feature.files.data'),
+    application.getPath('feature.notes.data'),
+    application.getPath('feature.knowledgebase.data')
+  ].map((path) => resolve(path))
+  if (!roots.some((root) => isPathWithinRoot(target, root))) {
     throw new Error('File path is outside managed storage')
   }
   return target
@@ -169,8 +219,9 @@ function notesPath(candidate: string): string {
 }
 
 function safeNoteName(value: string): string {
-  const safe = basename(value)
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+  const safe = Array.from(basename(value), (character) => (character.charCodeAt(0) <= 31 ? '_' : character))
+    .join('')
+    .replace(/[<>:"/\\|?*]/g, '_')
     .trim()
   if (!safe || safe === '.' || safe === '..') throw new Error('Invalid note name')
   return safe.replace(/\.md$/i, '')
@@ -452,6 +503,13 @@ export const webRoutes = new Elysia()
       const request = body as { route: string; input: unknown; clientId?: string }
       if (REMOTE_FILE_TREE_ROUTES.has(request.route as RemoteFileTreeRoute)) {
         return dispatchRemoteFileTree(request.route as RemoteFileTreeRoute, request.input, request.clientId ?? '')
+      }
+      if (request.route === 'knowledge.add_items') {
+        if (!(await isRemoteKnowledgeAddItemsInput(request.input))) {
+          set.status = 403
+          return { error: 'Route is not available to remote clients' }
+        }
+        return application.get('IpcApiService').requestFromRemote(request.route, request.input)
       }
       if (!isRemoteIpcRoute(request.route)) {
         set.status = 403

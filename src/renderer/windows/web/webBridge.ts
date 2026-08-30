@@ -321,18 +321,22 @@ export function installWebBridge(): void {
     ipcApi: {
       request: (route: string, input: any) => {
         if (route === 'system.get_native_theme') {
-          return Promise.resolve(
-            window.matchMedia('(prefers-color-scheme: dark)').matches ? ThemeMode.dark : ThemeMode.light
-          )
+          return Promise.resolve({
+            ok: true,
+            data: window.matchMedia('(prefers-color-scheme: dark)').matches ? ThemeMode.dark : ThemeMode.light
+          })
         }
-        if (route === 'system.get_device_type') return Promise.resolve('web')
+        if (route === 'system.get_device_type') return Promise.resolve({ ok: true, data: 'web' })
         if (route === 'system.shell.open_website') {
           window.open(input, '_blank', 'noopener,noreferrer')
-          return Promise.resolve(undefined)
+          return Promise.resolve({ ok: true, data: undefined })
         }
         if (route === 'navigation.protocol_dispatch_ready' || route === 'navigation.ack_open_route') {
           return Promise.resolve({ ok: true, data: undefined })
         }
+        if (route === 'window.get_init_data') return Promise.resolve({ ok: true, data: null })
+        if (route === 'window.is_maximized') return Promise.resolve({ ok: true, data: false })
+        if (route === 'mcp.protocol_install.list_pending') return Promise.resolve({ ok: true, data: [] })
         if (route === 'translate.open') {
           return subscribeTopic(input.streamId)
             .then(() => request('/web/api/translate/open', { clientId: eventClientId, ...input }))

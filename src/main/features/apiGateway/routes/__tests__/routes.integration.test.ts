@@ -1,5 +1,9 @@
 import { scryptSync } from 'node:crypto'
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
 
+import { application } from '@application'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
@@ -257,6 +261,120 @@ describe('API gateway routes (integration)', () => {
       expect(body.ok).toBe(true)
     })
 
+    it('allows resolving a knowledge-managed source path by item id', async () => {
+      const input = { itemId: 'item-1' }
+      const { status } = await read(await webPost('/web/api/ipc', { route: 'knowledge.get_file_path', input }))
+
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith('knowledge.get_file_path', input)
+    })
+
+    it('allows adding browser-safe knowledge sources', async () => {
+      const filesRoot = await mkdtemp(join(tmpdir(), 'cherry-web-files-'))
+      const uploadedFile = join(filesRoot, 'upload.md')
+      await writeFile(uploadedFile, '# Uploaded knowledge', 'utf8')
+      vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) => {
+        const root = key === 'feature.files.data' ? filesRoot : `/mock/${key}`
+        return filename ? join(root, filename) : root
+      })
+      const input = {
+        baseId: 'base-1',
+        items: [
+          {
+            type: 'file',
+            data: { source: 'upload.md', path: uploadedFile }
+          },
+          {
+            type: 'note',
+            data: { source: 'Web note', content: 'Knowledge content' }
+          },
+          {
+            type: 'url',
+            data: { source: 'https://example.com', url: 'https://example.com' }
+          }
+        ],
+        conflictStrategy: 'detect'
+      }
+
+      try {
+        const { status } = await read(await webPost('/web/api/ipc', { route: 'knowledge.add_items', input }))
+
+        expect(status).toBe(200)
+        expect(mockIpcApiRequest).toHaveBeenCalledWith('knowledge.add_items', input)
+      } finally {
+        vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) =>
+          filename ? `/mock/${key}/${filename}` : `/mock/${key}`
+        )
+        await rm(filesRoot, { recursive: true, force: true })
+      }
+    })
+
+    it.each([
+      [{ type: 'file', data: { source: 'passwd', path: '/etc/passwd' } }],
+      [
+        {
+          type: 'file',
+          data: {
+            source: 'upload.md',
+            path: '/mock/feature.files.data/upload.md',
+            indexedPath: '/mock/feature.knowledgebase.data/base-1/processed/upload.md'
+          }
+        }
+      ],
+      [
+        {
+          type: 'url',
+          data: {
+            source: 'https://example.com',
+            url: 'https://example.com',
+            snapshotPath: '/mock/feature.knowledgebase.data/base-1/raw/example.md'
+          }
+        }
+      ],
+      [{ type: 'directory', data: { source: '/Volumes/Data' } }]
+    ])('rejects unsafe remote knowledge sources', async (item) => {
+      const { status, body } = await read(
+        await webPost('/web/api/ipc', {
+          route: 'knowledge.add_items',
+          input: { baseId: 'base-1', items: [item], conflictStrategy: 'detect' }
+        })
+      )
+
+      expect(status).toBe(403)
+      expect(body).toEqual({ error: 'Route is not available to remote clients' })
+      expect(mockIpcApiRequest).not.toHaveBeenCalled()
+    })
+
+    it('rejects a knowledge source symlink that escapes managed file storage', async () => {
+      const filesRoot = await mkdtemp(join(tmpdir(), 'cherry-web-files-'))
+      const linkedFile = join(filesRoot, 'linked.md')
+      await symlink('/etc/passwd', linkedFile)
+      vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) => {
+        const root = key === 'feature.files.data' ? filesRoot : `/mock/${key}`
+        return filename ? join(root, filename) : root
+      })
+
+      try {
+        const { status } = await read(
+          await webPost('/web/api/ipc', {
+            route: 'knowledge.add_items',
+            input: {
+              baseId: 'base-1',
+              items: [{ type: 'file', data: { source: 'linked.md', path: linkedFile } }]
+            }
+          })
+        )
+
+        expect(status).toBe(403)
+        expect(mockIpcApiRequest).not.toHaveBeenCalled()
+      } finally {
+        vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) =>
+          filename ? `/mock/${key}/${filename}` : `/mock/${key}`
+        )
+        await rm(filesRoot, { recursive: true, force: true })
+      }
+    })
+
     it('creates a managed directory tree for the connected web event client', async () => {
       const events = await get(app, '/web/api/events', { cookie, 'x-cherry-web-client-id': 'client-1' })
       const input = { rootPath: '/mock/app.userdata.data/Agents' }
@@ -314,6 +432,44 @@ describe('API gateway routes (integration)', () => {
 
       expect(install.status).toBe(403)
       expect(install.body).toEqual({ error: 'Route is not available to remote clients' })
+      expect(mockIpcApiRequest).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      ['ai.agent.session.prewarm', { sessionId: 'session-1' }],
+      ['ai.tool.respond_approval', { approvalId: 'approval-1', approved: true }],
+      ['binary.get_latest_versions', false],
+      ['file.batch_get_dangling_states', { ids: ['01912345-6789-7abc-8def-0123456789ab'] }],
+      [
+        'file.batch_get_metadata',
+        { items: [{ key: 'file-1', handle: { type: 'entry', id: '01912345-6789-7abc-8def-0123456789ab' } }] }
+      ],
+      ['file.batch_get_physical_paths', { ids: ['01912345-6789-7abc-8def-0123456789ab'] }],
+      ['knowledge.list_item_chunks', { baseId: 'base-1', itemId: 'item-1' }],
+      ['knowledge.search', { baseId: 'base-1', query: 'test' }],
+      ['mcp.server.get_version', { serverId: 'server-1' }],
+      ['mcp.server.list_prompts', { serverId: 'server-1' }],
+      ['mcp.server.list_resources', { serverId: 'server-1' }],
+      ['mcp.server.read_resource_preview', { serverId: 'server-1', uri: 'file:///readme', maxChars: 4000 }],
+      ['mcp.server.refresh_tools', { serverId: 'server-1' }],
+      ['mcp.tool.abort_call', { callId: 'call-1', scope: 'topic-1' }]
+    ])('allows the constrained web route %s', async (route, input) => {
+      const { status } = await read(await webPost('/web/api/ipc', { route, input }))
+
+      expect(status).toBe(200)
+      expect(mockIpcApiRequest).toHaveBeenCalledWith(route, input)
+    })
+
+    it('keeps remote CLI execution unavailable', async () => {
+      const { status, body } = await read(
+        await webPost('/web/api/ipc', {
+          route: 'code_cli.run',
+          input: { cliTool: 'claude-code', prompt: 'run' }
+        })
+      )
+
+      expect(status).toBe(403)
+      expect(body).toEqual({ error: 'Route is not available to remote clients' })
       expect(mockIpcApiRequest).not.toHaveBeenCalled()
     })
 
@@ -397,13 +553,39 @@ describe('API gateway routes (integration)', () => {
       expect(response.status).toBe(500)
     })
 
-    it('rejects managed file reads outside Files and Notes storage', async () => {
-      const response = await webPost('/web/api/file', {
-        action: 'readManaged',
-        filePath: '/etc/passwd',
-        encoding: true
+    it('reads knowledge-managed files and rejects paths outside managed storage', async () => {
+      const knowledgeRoot = await mkdtemp(join(tmpdir(), 'cherry-web-knowledge-'))
+      const knowledgeFile = join(knowledgeRoot, 'base-1', 'raw', 'AGENTS.md')
+      await mkdir(dirname(knowledgeFile), { recursive: true })
+      await writeFile(knowledgeFile, '# Knowledge source', 'utf8')
+      vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) => {
+        const root = key === 'feature.knowledgebase.data' ? knowledgeRoot : `/mock/${key}`
+        return filename ? join(root, filename) : root
       })
-      expect(response.status).toBe(500)
+
+      try {
+        const managed = await read(
+          await webPost('/web/api/file', {
+            action: 'readManaged',
+            filePath: knowledgeFile,
+            encoding: true
+          })
+        )
+        const response = await webPost('/web/api/file', {
+          action: 'readManaged',
+          filePath: '/etc/passwd',
+          encoding: true
+        })
+
+        expect(managed.status).toBe(200)
+        expect(managed.body).toEqual({ data: '# Knowledge source' })
+        expect(response.status).toBe(500)
+      } finally {
+        vi.mocked(application.getPath).mockImplementation((key: string, filename?: string) =>
+          filename ? `/mock/${key}/${filename}` : `/mock/${key}`
+        )
+        await rm(knowledgeRoot, { recursive: true, force: true })
+      }
     })
   })
 

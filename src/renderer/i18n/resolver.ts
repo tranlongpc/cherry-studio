@@ -70,10 +70,10 @@ export const setDayjsLocale = (language: string) => {
 
 let initPromise: Promise<void> | null = null
 
-const doInit = async (): Promise<void> => {
+const doInit = async (initialLanguage?: LanguageVarious): Promise<void> => {
   // Resolve the language up front. A rejected lookup falls back rather than
   // rejecting init — the UI must still render (in the fallback language).
-  const lng = await getLanguage().catch(() => defaultLanguage)
+  const lng = initialLanguage ?? (await getLanguage().catch(() => defaultLanguage))
 
   await i18n
     .use(
@@ -111,6 +111,6 @@ const doInit = async (): Promise<void> => {
  * await the same in-flight promise. Every window entry must `await initI18n()`
  * before rendering, because translation packs now load asynchronously.
  */
-export const initI18n = (): Promise<void> => (initPromise ??= doInit())
+export const initI18n = (initialLanguage?: LanguageVarious): Promise<void> => (initPromise ??= doInit(initialLanguage))
 
 export default i18n

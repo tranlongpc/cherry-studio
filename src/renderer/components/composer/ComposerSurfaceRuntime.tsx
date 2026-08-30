@@ -745,6 +745,14 @@ export default function ComposerSurfaceRuntime({
     },
     [frameRef]
   )
+  const restoreEditorFocusAfterRender = useCallback(
+    (snapshot: ComposerFocusRestoreSnapshot) => {
+      window.requestAnimationFrame(() => {
+        if (shouldRestoreEditorFocus(snapshot)) focusEditor()
+      })
+    },
+    [focusEditor, shouldRestoreEditorFocus]
+  )
   const submitDraft = useCallback(
     (steer: boolean) => {
       if (sendDisabledRef.current || !editorRef.current) {
@@ -756,10 +764,10 @@ export default function ComposerSurfaceRuntime({
       const focusRestoreSnapshot = createEditorFocusRestoreSnapshot()
       const sent = steer ? onSendDraftRef.current(draft, { steer: true }) : onSendDraftRef.current(draft)
       void Promise.resolve(sent).finally(() => {
-        if (shouldRestoreEditorFocus(focusRestoreSnapshot)) focusEditor()
+        restoreEditorFocusAfterRender(focusRestoreSnapshot)
       })
     },
-    [createEditorFocusRestoreSnapshot, focusEditor, shouldRestoreEditorFocus, showBlockedSendReason]
+    [createEditorFocusRestoreSnapshot, restoreEditorFocusAfterRender, showBlockedSendReason]
   )
 
   const compactMeasurementInputsRef = useRef({
@@ -1937,15 +1945,14 @@ export default function ComposerSurfaceRuntime({
     const draft = serializeComposerDocument(editor)
     const focusRestoreSnapshot = createEditorFocusRestoreSnapshot()
     void Promise.resolve(onSendDraft(draft)).finally(() => {
-      if (shouldRestoreEditorFocus(focusRestoreSnapshot)) focusEditor()
+      restoreEditorFocusAfterRender(focusRestoreSnapshot)
     })
   }, [
     createEditorFocusRestoreSnapshot,
     editor,
-    focusEditor,
     onSendDraft,
+    restoreEditorFocusAfterRender,
     sendDisabled,
-    shouldRestoreEditorFocus,
     showBlockedSendReason
   ])
 
