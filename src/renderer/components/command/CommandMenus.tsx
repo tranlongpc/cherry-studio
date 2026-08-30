@@ -31,7 +31,7 @@ import {
 } from '@renderer/hooks/command'
 import { useCloseBeforeAction } from '@renderer/hooks/useCloseBeforeAction'
 import { getCommandShortcutLabel } from '@renderer/utils/command'
-import { isMac, platform } from '@renderer/utils/platform'
+import { isMac, isWeb, platform } from '@renderer/utils/platform'
 import type {
   MenuLocation,
   MenuPresentationMode,
@@ -46,6 +46,11 @@ import React, { useCallback, useMemo, useRef, useState } from 'react'
 type CommandIconRenderer = (iconKey: string | undefined) => React.ReactNode
 
 const logger = loggerService.withContext('CommandMenus')
+
+const resolveRendererMenuPresentationMode = (
+  location: MenuLocation,
+  preferredMode: MenuPresentationMode
+): MenuPresentationMode => (isWeb ? 'cherry' : resolveMenuPresentationMode(location, preferredMode))
 
 export type MaybePromise<T> = T | PromiseLike<T>
 
@@ -347,7 +352,7 @@ export function CommandContextMenu({
   const extraItemsRequestIdRef = useRef(0)
   const runtime = useCommandRuntime()
   const model = useResolvedCommandMenu(location)
-  const mode = resolveMenuPresentationMode(location, preferredMode ?? 'cherry')
+  const mode = resolveRendererMenuPresentationMode(location, preferredMode ?? 'cherry')
   const commandItems = useMemo(() => removeEmptySeparators(model.items), [model.items])
   const pendingItems = pendingExtraItems ?? extraItems
   const resolveShortcutLabel = useCallback(
@@ -733,7 +738,7 @@ export function CommandPopupMenu({
   const shortcutPreferences = useCommandShortcutPreferences()
   const runtime = useCommandRuntime()
   const model = useResolvedCommandMenu(location)
-  const mode = resolveMenuPresentationMode(location, presentationMode ?? preferredMode ?? 'cherry')
+  const mode = resolveRendererMenuPresentationMode(location, presentationMode ?? preferredMode ?? 'cherry')
   const [internalOpen, setInternalOpen] = useState(defaultOpen ?? false)
   const pendingCherryActionRef = useRef<(() => void) | null>(null)
   const currentOpen = open ?? internalOpen

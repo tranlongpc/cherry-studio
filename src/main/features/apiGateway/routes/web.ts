@@ -3,6 +3,7 @@ import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve, sep } from 'node:path'
 
 import { application } from '@application'
+import { agentWorkspaceService } from '@data/services/AgentWorkspaceService'
 import { AiStreamAdmissionError, type StreamListener } from '@main/ai/streamManager'
 import { translateService } from '@main/services/translate/translateService'
 import type { AiStreamOpenRequest } from '@shared/ai/transport'
@@ -299,9 +300,14 @@ function closeEventClient(clientId: string): void {
 }
 
 function remoteTreePath(candidate: string): string {
-  const root = resolve(application.getPath('app.userdata.data'))
   const target = resolve(candidate)
-  if (target !== root && !target.startsWith(`${root}${sep}`)) throw new Error('Tree path is outside managed storage')
+  const roots = [
+    application.getPath('app.userdata.data'),
+    ...agentWorkspaceService.list({ includeSystem: true }).map((workspace) => workspace.path)
+  ].map((root) => resolve(root))
+  if (!roots.some((root) => target === root || target.startsWith(`${root}${sep}`))) {
+    throw new Error('Tree path is outside managed storage')
+  }
   return target
 }
 

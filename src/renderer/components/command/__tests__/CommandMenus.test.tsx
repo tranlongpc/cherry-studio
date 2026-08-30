@@ -2,14 +2,17 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { type MouseEvent as ReactMouseEvent, useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { loggerErrorMock, loggerWarnMock, preferenceValues, showNativePopupMenuMock } = vi.hoisted(() => ({
-  loggerErrorMock: vi.fn(),
-  loggerWarnMock: vi.fn(),
-  preferenceValues: {
-    'menu.presentation_mode': 'native'
-  } as Record<string, unknown>,
-  showNativePopupMenuMock: vi.fn()
-}))
+const { loggerErrorMock, loggerWarnMock, platformState, preferenceValues, showNativePopupMenuMock } = vi.hoisted(
+  () => ({
+    loggerErrorMock: vi.fn(),
+    loggerWarnMock: vi.fn(),
+    platformState: { isWeb: false },
+    preferenceValues: {
+      'menu.presentation_mode': 'native'
+    } as Record<string, unknown>,
+    showNativePopupMenuMock: vi.fn()
+  })
+)
 
 vi.mock('@logger', () => ({
   loggerService: {
@@ -27,7 +30,10 @@ vi.mock('@data/hooks/usePreference', () => ({
 
 vi.mock('@renderer/utils/platform', () => ({
   isMac: true,
-  platform: 'darwin'
+  platform: 'darwin',
+  get isWeb() {
+    return platformState.isWeb
+  }
 }))
 
 vi.mock('react-i18next', () => ({
@@ -236,6 +242,7 @@ function renderMenu({
 describe('CommandContextMenu', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    platformState.isWeb = false
     preferenceValues['menu.presentation_mode'] = 'native'
     window.api = {
       command: {
@@ -705,6 +712,27 @@ describe('CommandContextMenu', () => {
       expect(showNativePopupMenuMock).toHaveBeenCalled()
       expect(onOpenChange).toHaveBeenLastCalledWith(false)
     })
+  })
+
+  it('uses the cherry popup menu on web even when the saved preference is native', () => {
+    platformState.isWeb = true
+
+    render(
+      <CommandContextKeyProvider>
+        <CommandProvider>
+          <CommandPopupMenu
+            location="webcontents.context"
+            extraItems={[{ type: 'item', id: 'tool:branch', label: 'Branch', onSelect: vi.fn() }]}>
+            <button type="button">trigger-popup</button>
+          </CommandPopupMenu>
+        </CommandProvider>
+      </CommandContextKeyProvider>
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'trigger-popup' }))
+
+    expect(screen.getByRole('button', { name: 'Branch' })).toBeInTheDocument()
+    expect(showNativePopupMenuMock).not.toHaveBeenCalled()
   })
 
   it('runs deferred cherry popup actions after the close lifecycle finishes', () => {

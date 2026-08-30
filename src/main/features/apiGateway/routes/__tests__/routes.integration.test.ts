@@ -34,7 +34,8 @@ const {
   mockTreeActivateRemote,
   mockTreeDisposeRemote,
   mockTreeDisposeAllRemote,
-  mockTreeRenameRemote
+  mockTreeRenameRemote,
+  mockAgentWorkspaceList
 } = vi.hoisted(() => ({
   mockPreferenceGet: vi.fn<(key: string) => unknown>(() => 'test-key'),
   mockPreferenceGetAll: vi.fn<() => Record<string, unknown>>(() => ({ 'app.language': 'en-US' })),
@@ -62,7 +63,18 @@ const {
   mockTreeActivateRemote: vi.fn(() => true),
   mockTreeDisposeRemote: vi.fn(() => true),
   mockTreeDisposeAllRemote: vi.fn(),
-  mockTreeRenameRemote: vi.fn(() => true)
+  mockTreeRenameRemote: vi.fn(() => true),
+  mockAgentWorkspaceList: vi.fn(() => [
+    {
+      id: 'workspace-1',
+      name: 'project',
+      path: '/mock/registered-workspaces/project',
+      type: 'user',
+      orderKey: 'a0',
+      createdAt: '2026-08-30T00:00:00.000Z',
+      updatedAt: '2026-08-30T00:00:00.000Z'
+    }
+  ])
 }))
 
 vi.mock('@application', async () => {
@@ -97,6 +109,10 @@ vi.mock('@logger', () => ({
 
 vi.mock('@main/services/translate/translateService', () => ({
   translateService: { openWithListener: mockTranslateOpen }
+}))
+
+vi.mock('@data/services/AgentWorkspaceService', () => ({
+  agentWorkspaceService: { list: mockAgentWorkspaceList }
 }))
 
 // Route `detail.description` fields hold i18n *keys*; openapiDocs.ts resolves them
@@ -410,6 +426,41 @@ describe('API gateway routes (integration)', () => {
       expect(mockTreeDisposeAllRemote).toHaveBeenCalledWith('client-1')
     })
 
+    it('creates a directory tree for a registered agent workspace outside app storage', async () => {
+      const events = await get(app, '/web/api/events', { cookie, 'x-cherry-web-client-id': 'client-1' })
+      const input = { rootPath: '/mock/registered-workspaces/project' }
+      const { status } = await read(
+        await webPost('/web/api/ipc', { route: 'file.tree.create', input, clientId: 'client-1' })
+      )
+
+      expect(status).toBe(200)
+      expect(mockTreeCreateRemote).toHaveBeenCalledWith(
+        'client-1',
+        expect.any(Function),
+        expect.any(Function),
+        input.rootPath,
+        undefined
+      )
+
+      await events.body?.cancel()
+    })
+
+    it('rejects a directory tree outside app storage and registered agent workspaces', async () => {
+      const events = await get(app, '/web/api/events', { cookie, 'x-cherry-web-client-id': 'client-1' })
+      const { body } = await read(
+        await webPost('/web/api/ipc', {
+          route: 'file.tree.create',
+          input: { rootPath: '/mock/registered-workspaces/project-copy' },
+          clientId: 'client-1'
+        })
+      )
+
+      expect(body).toMatchObject({ ok: false, error: { message: 'Tree path is outside managed storage' } })
+      expect(mockTreeCreateRemote).not.toHaveBeenCalled()
+
+      await events.body?.cancel()
+    })
+
     it('rejects IpcApi routes outside the remote allowlist', async () => {
       const { status, body } = await read(
         await webPost('/web/api/ipc', { route: 'application.relaunch', input: undefined })
@@ -512,14 +563,14 @@ describe('API gateway routes (integration)', () => {
     })
 
     it('keeps the desktop notes path out of web preference reads', async () => {
-      mockPreferenceGet.mockReturnValueOnce('/Volumes/Data/Git/cherry-studio')
+      mockPreferenceGet.mockReturnValueOnce('/mock/desktop-notes')
       mockPreferenceGetMultipleRaw.mockReturnValueOnce({
         'app.language': 'en-US',
-        'feature.notes.path': '/Volumes/Data/Git/cherry-studio'
+        'feature.notes.path': '/mock/desktop-notes'
       })
       mockPreferenceGetAll.mockReturnValueOnce({
         'app.language': 'en-US',
-        'feature.notes.path': '/Volumes/Data/Git/cherry-studio'
+        'feature.notes.path': '/mock/desktop-notes'
       })
 
       const single = await read(await webPost('/web/api/preference', { action: 'get', key: 'feature.notes.path' }))
