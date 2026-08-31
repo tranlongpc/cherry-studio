@@ -8,7 +8,9 @@ declare global {
     electron: ElectronAPI
     api: WindowApiType
     remoteClient?: {
+      platform: NodeJS.Platform
       request: (route: string, input?: unknown) => Promise<unknown>
+      on: (event: string, callback: (payload: unknown) => void) => () => void
     }
   }
 }

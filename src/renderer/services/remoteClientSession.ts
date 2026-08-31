@@ -51,6 +51,19 @@ export async function connectRemoteClient(credentials: RemoteClientConnectionInp
   }
 }
 
+export async function restoreRemoteClient(): Promise<boolean> {
+  remoteClientRuntimeService.clear()
+  if (!window.remoteClient) return false
+  try {
+    const session = await requestRemoteClient('remote_client.restore_session')
+    if (!session) return false
+    remoteClientRuntimeService.configure(session)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function disconnectRemoteClient(): Promise<void> {
   remoteClientRuntimeService.clear()
   if (window.remoteClient) await requestRemoteClient('remote_client.clear_session')

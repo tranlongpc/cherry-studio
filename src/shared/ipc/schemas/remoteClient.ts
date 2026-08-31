@@ -31,6 +31,10 @@ export const remoteClientRequestSchemas = {
     input: remoteClientConnectionInputSchema,
     output: remoteClientConnectionResultSchema
   }),
+  'remote_client.restore_session': defineRoute({
+    input: z.void(),
+    output: remoteClientSessionInputSchema.nullable()
+  }),
   'remote_client.clear_session': defineRoute({
     input: z.void(),
     output: z.void()

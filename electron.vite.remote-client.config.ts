@@ -43,7 +43,8 @@ export default defineConfig({
       rollupOptions: {
         ...config.renderer.build.rollupOptions,
         input: {
-          remoteClient: resolve(__dirname, 'src/renderer/windows/remoteClient/index.html')
+          remoteClient: resolve(__dirname, 'src/renderer/windows/remoteClient/index.html'),
+          remoteClientQuickAssistant: resolve(__dirname, 'src/renderer/windows/remoteClient/quickAssistant/index.html')
         }
       }
     }

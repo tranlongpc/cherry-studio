@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { remoteClientRuntimeService } from '../RemoteClientRuntimeService'
 import type { RemoteClientConnectionError } from '../remoteClientSession'
-import { connectRemoteClient } from '../remoteClientSession'
+import { connectRemoteClient, restoreRemoteClient } from '../remoteClientSession'
 
 describe('remoteClientSession', () => {
   const request = vi.fn()
@@ -41,6 +41,27 @@ describe('remoteClientSession', () => {
     })
     expect(remoteClientRuntimeService.resolveUrl('/web/api/data')).toBe('https://studio.example.com/web/api/data')
     expect(remoteClientRuntimeService.getAuthorization()).toBe('Bearer session-token')
+  })
+
+  it('restores the Electron session without credentials', async () => {
+    request.mockResolvedValue({
+      ok: true,
+      data: { serverUrl: 'https://studio.example.com', token: 'persisted-token' }
+    })
+
+    await expect(restoreRemoteClient()).resolves.toBe(true)
+
+    expect(request).toHaveBeenCalledWith('remote_client.restore_session', undefined)
+    expect(remoteClientRuntimeService.resolveUrl('/web/api/data')).toBe('https://studio.example.com/web/api/data')
+    expect(remoteClientRuntimeService.getAuthorization()).toBe('Bearer persisted-token')
+  })
+
+  it('keeps the runtime inactive when no persisted session exists', async () => {
+    request.mockResolvedValue({ ok: true, data: null })
+
+    await expect(restoreRemoteClient()).resolves.toBe(false)
+
+    expect(remoteClientRuntimeService.resolveUrl('/web/api/data')).toBe('/web/api/data')
   })
 
   it('rejects invalid URLs before making a network request', async () => {

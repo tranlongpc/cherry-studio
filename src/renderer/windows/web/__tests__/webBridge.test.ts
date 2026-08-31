@@ -86,6 +86,28 @@ describe('webBridge', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('keeps Quick Assistant window commands inside the desktop client', async () => {
+    const nativeRequest = vi.fn().mockResolvedValue({ ok: true, data: undefined })
+    const nativeOn = vi.fn(() => () => undefined)
+    const fetchSpy = vi.spyOn(window, 'fetch')
+
+    installWebBridge({
+      nativeIpcApi: { request: nativeRequest, on: nativeOn },
+      nativeIpcEvents: new Set(['quick_assistant.shown']),
+      nativeIpcRoutes: new Set(['quick_assistant.hide', 'quick_assistant.set_pin'])
+    })
+
+    await expect(ipcApi.request('quick_assistant.hide')).resolves.toBeUndefined()
+    await expect(ipcApi.request('quick_assistant.set_pin', { isPinned: true })).resolves.toBeUndefined()
+    const listener = vi.fn()
+    window.api.ipcApi.on('quick_assistant.shown', listener)
+
+    expect(nativeRequest).toHaveBeenNthCalledWith(1, 'quick_assistant.hide', undefined)
+    expect(nativeRequest).toHaveBeenNthCalledWith(2, 'quick_assistant.set_pin', { isPinned: true })
+    expect(nativeOn).toHaveBeenCalledWith('quick_assistant.shown', listener)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   it('returns synchronous cleanup functions for desktop-only event listeners', () => {
     const cleanup: unknown = window.api.shortcut.onRegistrationConflict(vi.fn())
     if (cleanup instanceof Promise) void cleanup.catch(() => {})

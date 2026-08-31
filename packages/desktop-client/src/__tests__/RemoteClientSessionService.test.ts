@@ -11,24 +11,36 @@ type BeforeSendHeadersListener = (
 describe('RemoteClientSessionService', () => {
   const fetchRequest = vi.fn()
   const getCookies = vi.fn()
+  const setCookie = vi.fn()
   const removeCookie = vi.fn()
-  let beforeSendHeaders: BeforeSendHeadersListener
+  const flushStore = vi.fn()
+  let authBeforeSendHeaders: BeforeSendHeadersListener
+  let rendererBeforeSendHeaders: BeforeSendHeadersListener
   let service: RemoteClientSessionService
 
   beforeEach(() => {
     fetchRequest.mockReset()
     getCookies.mockReset().mockResolvedValue([])
+    setCookie.mockReset().mockResolvedValue(undefined)
     removeCookie.mockReset().mockResolvedValue(undefined)
-    const clientSession = {
+    flushStore.mockReset().mockResolvedValue(undefined)
+    const authSession = {
       fetch: fetchRequest,
-      cookies: { get: getCookies, remove: removeCookie },
+      cookies: { flushStore, get: getCookies, remove: removeCookie, set: setCookie },
       webRequest: {
         onBeforeSendHeaders: vi.fn((_filter, listener: BeforeSendHeadersListener) => {
-          beforeSendHeaders = listener
+          authBeforeSendHeaders = listener
         })
       }
     } as unknown as Electron.Session
-    service = new RemoteClientSessionService(clientSession)
+    const rendererSession = {
+      webRequest: {
+        onBeforeSendHeaders: vi.fn((_filter, listener: BeforeSendHeadersListener) => {
+          rendererBeforeSendHeaders = listener
+        })
+      }
+    } as unknown as Electron.Session
+    service = new RemoteClientSessionService(authSession, rendererSession)
   })
 
   it('uses the cookie session returned by an existing web server', async () => {
@@ -57,6 +69,26 @@ describe('RemoteClientSessionService', () => {
       })
     )
     expect(new Headers(fetchRequest.mock.calls[1][1].headers).get(REMOTE_CLIENT_HEADER)).toBe('desktop')
+
+    const rendererCallback = vi.fn()
+    rendererBeforeSendHeaders(
+      {
+        id: 1,
+        url: 'https://studio.example.com/web/api/data',
+        method: 'POST',
+        resourceType: 'xhr',
+        referrer: '',
+        timestamp: 1,
+        requestHeaders: {}
+      },
+      rendererCallback
+    )
+    expect(rendererCallback).toHaveBeenCalledWith({
+      requestHeaders: {
+        Authorization: 'Bearer legacy-session-token',
+        Cookie: 'cherry_web_session=legacy-session-token'
+      }
+    })
   })
 
   it('uses the token returned by an updated server without requiring a cookie', async () => {
@@ -76,6 +108,71 @@ describe('RemoteClientSessionService', () => {
       success: true,
       session: { serverUrl: 'https://studio.example.com', token: 'response-token' }
     })
+    expect(setCookie).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: 'https://studio.example.com/web/api',
+        name: 'cherry_web_session',
+        value: 'response-token',
+        path: '/web/api'
+      })
+    )
+    expect(setCookie).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: 'https://remote-client.local/',
+        name: 'cherry_remote_origin',
+        value: encodeURIComponent('https://studio.example.com')
+      })
+    )
+    expect(flushStore).toHaveBeenCalledOnce()
+  })
+
+  it('restores and validates a persisted remote session without credentials', async () => {
+    getCookies.mockImplementation(({ name }: Electron.CookiesGetFilter) => {
+      if (name === 'cherry_remote_origin') {
+        return Promise.resolve([{ value: encodeURIComponent('https://studio.example.com') }])
+      }
+      if (name === 'cherry_web_session') return Promise.resolve([{ value: 'persisted-token' }])
+      return Promise.resolve([])
+    })
+    fetchRequest.mockResolvedValue(new Response(JSON.stringify({ authenticated: true }), { status: 200 }))
+
+    await expect(service.restore()).resolves.toEqual({
+      serverUrl: 'https://studio.example.com',
+      token: 'persisted-token'
+    })
+    expect(fetchRequest).toHaveBeenCalledWith(
+      'https://studio.example.com/web/api/session',
+      expect.objectContaining({ credentials: 'include' })
+    )
+  })
+
+  it('clears an expired persisted session', async () => {
+    getCookies.mockImplementation(({ name }: Electron.CookiesGetFilter) => {
+      if (name === 'cherry_remote_origin') {
+        return Promise.resolve([{ value: encodeURIComponent('https://studio.example.com') }])
+      }
+      if (name === 'cherry_web_session') return Promise.resolve([{ value: 'expired-token' }])
+      return Promise.resolve([])
+    })
+    fetchRequest.mockResolvedValue(new Response(undefined, { status: 401 }))
+
+    await expect(service.restore()).resolves.toBeNull()
+    expect(removeCookie).toHaveBeenCalledWith('https://studio.example.com/web/api', 'cherry_web_session')
+    expect(removeCookie).toHaveBeenCalledWith('https://remote-client.local/', 'cherry_remote_origin')
+  })
+
+  it('keeps persisted authentication when validation is temporarily unavailable', async () => {
+    getCookies.mockImplementation(({ name }: Electron.CookiesGetFilter) => {
+      if (name === 'cherry_remote_origin') {
+        return Promise.resolve([{ value: encodeURIComponent('https://studio.example.com') }])
+      }
+      if (name === 'cherry_web_session') return Promise.resolve([{ value: 'persisted-token' }])
+      return Promise.resolve([])
+    })
+    fetchRequest.mockRejectedValue(new Error('offline'))
+
+    await expect(service.restore()).resolves.toBeNull()
+    expect(removeCookie).not.toHaveBeenCalled()
   })
 
   it('adds authentication only to the configured server origin', async () => {
@@ -91,7 +188,7 @@ describe('RemoteClientSessionService', () => {
     })
 
     const remoteCallback = vi.fn()
-    beforeSendHeaders(
+    rendererBeforeSendHeaders(
       {
         id: 1,
         url: 'https://studio.example.com/web/api/data',
@@ -111,7 +208,7 @@ describe('RemoteClientSessionService', () => {
     })
 
     const externalCallback = vi.fn()
-    beforeSendHeaders(
+    rendererBeforeSendHeaders(
       {
         id: 2,
         url: 'https://cdn.example.com/image.png',
@@ -124,6 +221,41 @@ describe('RemoteClientSessionService', () => {
       externalCallback
     )
     expect(externalCallback).toHaveBeenCalledWith({ requestHeaders: {} })
+
+    const authCallback = vi.fn()
+    authBeforeSendHeaders(
+      {
+        id: 3,
+        url: 'https://studio.example.com/web/api/session',
+        method: 'GET',
+        resourceType: 'xhr',
+        referrer: '',
+        timestamp: 1,
+        requestHeaders: {}
+      },
+      authCallback
+    )
+    expect(authCallback).toHaveBeenCalledWith({
+      requestHeaders: {
+        Authorization: 'Bearer response-token',
+        Cookie: 'cherry_web_session=response-token'
+      }
+    })
+
+    const preflightCallback = vi.fn()
+    rendererBeforeSendHeaders(
+      {
+        id: 4,
+        url: 'https://studio.example.com/web/api/data',
+        method: 'OPTIONS',
+        resourceType: 'xhr',
+        referrer: '',
+        timestamp: 1,
+        requestHeaders: { Origin: 'file://' }
+      },
+      preflightCallback
+    )
+    expect(preflightCallback).toHaveBeenCalledWith({ requestHeaders: { Origin: 'file://' } })
   })
 
   it('keeps rejected credentials distinct from network failures', async () => {
@@ -155,5 +287,7 @@ describe('RemoteClientSessionService', () => {
     await service.clear()
 
     expect(removeCookie).toHaveBeenCalledWith('https://studio.example.com/web/api', 'cherry_web_session')
+    expect(removeCookie).toHaveBeenCalledWith('https://remote-client.local/', 'cherry_remote_origin')
+    expect(flushStore).toHaveBeenCalled()
   })
 })

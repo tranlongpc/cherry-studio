@@ -44,14 +44,14 @@ export function RemoteClientLoginPage({ loading, onAuthenticated }: RemoteClient
     } catch (error) {
       setErrorKind(error instanceof RemoteClientConnectionError ? error.kind : 'server')
     } finally {
+      setPassword('')
       setConnecting(false)
     }
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-5 py-12 text-foreground">
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-[30vw] bg-sidebar" />
-      <section className="relative w-full max-w-[420px] rounded-2xl border border-border bg-card p-7 shadow-lg sm:p-9">
+    <main className="grid min-h-full w-full flex-1 place-items-center overflow-auto bg-background p-5 text-foreground">
+      <section className="w-full max-w-[420px] rounded-2xl border border-border bg-card p-7 shadow-lg sm:p-9">
         <div className="mb-8 flex items-center gap-3">
           <img src={AppLogo} alt="" className="size-12 rounded-xl" />
           <div>
@@ -104,7 +104,7 @@ export function RemoteClientLoginPage({ loading, onAuthenticated }: RemoteClient
             <Input
               id="remote-password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="off"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder={lang('webLogin.passwordPlaceholder')}

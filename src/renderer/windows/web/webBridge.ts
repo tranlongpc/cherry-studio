@@ -15,6 +15,18 @@ import type { FileMetadata } from '@shared/data/types/legacyFile'
 import type { CreateInternalEntryIpcParams, GetPhysicalPathIpcParams } from '@shared/types/file'
 
 type Listener = (...args: any[]) => void
+type NativeIpcApi = {
+  request: (route: string, input?: unknown) => Promise<unknown>
+  on: (event: string, callback: (payload: unknown) => void) => () => void
+}
+
+interface WebBridgeOptions {
+  nativeIpcApi?: NativeIpcApi
+  nativeIpcEvents?: ReadonlySet<string>
+  nativeIpcRoutes?: ReadonlySet<string>
+  platform?: NodeJS.Platform
+}
+
 const eventListeners = new Map<string, Set<(payload: unknown) => void>>()
 const cacheSyncListeners = new Set<(message: CacheSyncMessage) => void>()
 const activeExecutionsByTopic = new Map<string, Map<string, ActiveExecution>>()
@@ -301,7 +313,7 @@ function adjustBrowserZoom(delta: number, reset: boolean): number {
   return browserZoomFactor
 }
 
-export function installWebBridge(): void {
+export function installWebBridge(options: WebBridgeOptions = {}): void {
   const noEvents: (...args: Listener[]) => () => void = () => () => {}
   const api = {
     cache: {
@@ -353,6 +365,9 @@ export function installWebBridge(): void {
     },
     ipcApi: {
       request: (route: string, input: any) => {
+        if (options.nativeIpcApi && options.nativeIpcRoutes?.has(route)) {
+          return options.nativeIpcApi.request(route, input)
+        }
         if (route === 'system.get_native_theme') {
           return Promise.resolve({
             ok: true,
@@ -397,6 +412,9 @@ export function installWebBridge(): void {
         return route.startsWith('file.tree.') ? ensureEventStream().then(remoteRequest) : remoteRequest()
       },
       on: (event: string, callback: (payload: unknown) => void) => {
+        if (options.nativeIpcApi && options.nativeIpcEvents?.has(event)) {
+          return options.nativeIpcApi.on(event, callback)
+        }
         const listeners = eventListeners.get(event) ?? new Set()
         listeners.add(callback)
         eventListeners.set(event, listeners)
@@ -459,7 +477,10 @@ export function installWebBridge(): void {
     configurable: true,
     value: {
       ipcRenderer: { invoke: async () => undefined, on: () => {}, send: () => {} },
-      process: { env: { NODE_ENV: import.meta.env.DEV ? 'development' : 'production' }, platform: 'web' }
+      process: {
+        env: { NODE_ENV: import.meta.env.DEV ? 'development' : 'production' },
+        platform: options.platform ?? 'web'
+      }
     }
   })
   Object.defineProperty(window, 'api', { configurable: true, value: unavailableApi })
