@@ -30,6 +30,8 @@
       "!**/.conductor/**",
       "!v2-refactor-temp/**",
       "!resources/**",
+      "!out-client/**",
+      "!dist-client/**",
       "!**/storybook-static/**",
       "!**/dist/**"
     ],
@@ -45,6 +47,8 @@
     "includes": [
       "**",
       "!out/**",
+      "!out-client/**",
+      "!dist-client/**",
       "!**/dist/**",
       "!build/**",
       "!.yarn/**",

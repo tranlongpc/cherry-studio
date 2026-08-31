@@ -37,6 +37,8 @@ node_modules
 .pnpm-store/
 dist
 out
+dist-client
+out-client
 mcp_server
 stats.html
 .eslintcache

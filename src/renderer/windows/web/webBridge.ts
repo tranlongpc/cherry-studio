@@ -1,3 +1,7 @@
+import {
+  REMOTE_CLIENT_SESSION_EXPIRED_EVENT,
+  remoteClientRuntimeService
+} from '@renderer/services/RemoteClientRuntimeService'
 import type { ActiveExecution, TopicStreamStatus } from '@shared/ai/transport'
 import type { DataRequest, DataResponse } from '@shared/data/api/types'
 import type { CacheSyncMessage } from '@shared/data/cache/cacheTypes'
@@ -73,8 +77,20 @@ export function clearWebSession(): void {
   activeExecutionsByTopic.clear()
 }
 
+async function bridgeFetch(input: string, init?: RequestInit): Promise<Response> {
+  const url = remoteClientRuntimeService.resolveUrl(input)
+  const authorization = remoteClientRuntimeService.getAuthorization(url)
+  if (!authorization) return fetch(url, init)
+
+  const headers = new Headers(init?.headers)
+  headers.set('authorization', authorization)
+  const response = await fetch(url, { ...init, headers })
+  if (response.status === 401) window.dispatchEvent(new Event(REMOTE_CLIENT_SESSION_EXPIRED_EVENT))
+  return response
+}
+
 export async function authenticateWebCredentials(email: string, password: string): Promise<void> {
-  const response = await fetch('/web/api/session', {
+  const response = await bridgeFetch('/web/api/session', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email: email.trim(), password })
@@ -86,12 +102,12 @@ export async function authenticateWebCredentials(email: string, password: string
 }
 
 export async function authenticateWebSession(): Promise<void> {
-  const response = await fetch('/web/api/session')
+  const response = await bridgeFetch('/web/api/session')
   if (!response.ok) throw new Error(`Request failed with status ${response.status}`)
 }
 
 async function request<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(path, {
+  const response = await bridgeFetch(path, {
     method: 'POST',
     headers: {
       'content-type': 'application/json'
@@ -99,7 +115,7 @@ async function request<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body)
   })
 
-  const payload = await response.json()
+  const payload = await response.json().catch(() => undefined)
   if (!response.ok) throw new Error(payload?.error ?? `Request failed with status ${response.status}`)
   return payload as T
 }
@@ -112,7 +128,7 @@ async function preferenceRequest<T>(body: unknown): Promise<T> {
 async function uploadBrowserFiles(files: File[]): Promise<FileMetadata[]> {
   return Promise.all(
     files.map(async (file) => {
-      const response = await fetch('/web/api/files', {
+      const response = await bridgeFetch('/web/api/files', {
         method: 'POST',
         headers: {
           'content-type': 'application/octet-stream',
@@ -182,7 +198,7 @@ function downloadBrowserFile(filename: string, content: string | ArrayBufferView
 }
 
 async function downloadBrowserImage(filename: string, data: string): Promise<boolean> {
-  const response = await fetch(data)
+  const response = await bridgeFetch(data)
   await downloadBrowserFile(filename, await response.blob())
   return true
 }
@@ -207,7 +223,7 @@ function ensureEventStream(): Promise<void> {
 
   eventStreamController = new AbortController()
   eventStreamReady = (async () => {
-    const response = await fetch('/web/api/events', {
+    const response = await bridgeFetch('/web/api/events', {
       headers: { 'x-cherry-web-client-id': eventClientId },
       signal: eventStreamController.signal
     })

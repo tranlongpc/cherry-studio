@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
 import { application } from '@application'
+import { REMOTE_CLIENT_HEADER } from '@shared/types/remoteClient'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
@@ -197,6 +198,7 @@ describe('API gateway routes (integration)', () => {
   describe('web client bridge', () => {
     let cookie: string
     let setCookie: string
+    let sessionToken: string
 
     beforeEach(async () => {
       clearWebSessions()
@@ -209,10 +211,11 @@ describe('API gateway routes (integration)', () => {
         app,
         '/web/api/session',
         { email: 'user@example.com', password: 'secret-password' },
-        { 'content-type': 'application/json' }
+        { 'content-type': 'application/json', [REMOTE_CLIENT_HEADER]: 'desktop' }
       )
       setCookie = response.headers.get('set-cookie')!
       cookie = setCookie.split(';')[0]
+      sessionToken = String((await response.clone().json()).token)
     })
 
     const webPost = (path: string, body: unknown, headers: Record<string, string> = {}) =>
@@ -236,6 +239,23 @@ describe('API gateway routes (integration)', () => {
       expect(setCookie).toContain('SameSite=Strict')
       expect(setCookie).toContain('Path=/web/api')
       expect(setCookie).not.toContain('test-key')
+    })
+
+    it('does not expose the session token to the browser login flow', async () => {
+      const response = await post(
+        app,
+        '/web/api/session',
+        { email: 'user@example.com', password: 'secret-password' },
+        { 'content-type': 'application/json' }
+      )
+
+      expect(await response.json()).toEqual({ authenticated: true })
+    })
+
+    it('accepts the session token as bearer authentication for desktop clients', async () => {
+      const response = await get(app, '/web/api/session', { authorization: `Bearer ${sessionToken}` })
+
+      expect(response.status).toBe(200)
     })
 
     it('does not accept the event client identifier from the URL', async () => {

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+    <meta name="logger-window-source" content="remoteClient" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src http: https:; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: file: http: https: blob:; media-src 'self' file: http: https: blob:; frame-src http: https: file:" />
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png" />
+    <title></title>
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/windows/remoteClient/entryPoint.tsx"></script>
+  </body>
+</html>

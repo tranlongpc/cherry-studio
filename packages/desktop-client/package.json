@@ -1,0 +1,7 @@
+{
+  "author": "support@cherry-ai.com",
+  "description": "Cherry Studio desktop client for a remote Cherry Studio host.",
+  "name": "@cherrystudio/desktop-client",
+  "private": true,
+  "version": "0.0.0"
+}

@@ -7,5 +7,8 @@ declare global {
   interface Window {
     electron: ElectronAPI
     api: WindowApiType
+    remoteClient?: {
+      request: (route: string, input?: unknown) => Promise<unknown>
+    }
   }
 }

@@ -53,6 +53,9 @@ async function verifyPassword(password: string, encodedHash: string): Promise<bo
 }
 
 function sessionToken(request: Request): string | undefined {
+  const authorization = request.headers.get('authorization')
+  if (authorization?.startsWith('Bearer ')) return authorization.slice('Bearer '.length).trim() || undefined
+
   const cookie = request.headers.get('cookie')
   if (!cookie) return undefined
   for (const pair of cookie.split(';')) {

@@ -48,6 +48,8 @@ export default defineConfig({
           include: [
             'src/main/**/*.{test,spec}.{ts,tsx}',
             'src/main/**/__tests__/**/*.{test,spec}.{ts,tsx}',
+            'packages/desktop-client/src/**/*.{test,spec}.{ts,tsx}',
+            'packages/desktop-client/src/**/__tests__/**/*.{test,spec}.{ts,tsx}',
             'tests/helpers/**/__tests__/**/*.{test,spec}.{ts,tsx}'
           ],
           benchmark: {

@@ -1,4 +1,8 @@
 import { ipcApi } from '@renderer/ipc'
+import {
+  REMOTE_CLIENT_SESSION_EXPIRED_EVENT,
+  remoteClientRuntimeService
+} from '@renderer/services/RemoteClientRuntimeService'
 import { AbsoluteFilePathSchema } from '@shared/types/file'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -22,6 +26,7 @@ function eventStreamResponse(): { response: Response; send: (message: unknown) =
 describe('webBridge', () => {
   beforeEach(() => {
     clearWebSession()
+    remoteClientRuntimeService.clear()
     vi.restoreAllMocks()
     document.documentElement.style.removeProperty('zoom')
     Object.defineProperty(window, 'matchMedia', {
@@ -316,6 +321,32 @@ describe('webBridge', () => {
     expect(click).toHaveBeenCalledOnce()
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:download')
     expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('does not send the remote session token to external image hosts', async () => {
+    remoteClientRuntimeService.configure({ serverUrl: 'https://studio.example.com', token: 'session-token' })
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: vi.fn(() => 'blob:download') })
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() })
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const fetchSpy = vi.spyOn(window, 'fetch').mockResolvedValue(new Response(new Blob(['image'])))
+
+    await window.api.file.saveImage('image.png', 'https://cdn.example.com/image.png')
+
+    const [url, init] = fetchSpy.mock.calls[0]
+    expect(url).toBe('https://cdn.example.com/image.png')
+    expect(new Headers(init?.headers).get('authorization')).toBeNull()
+  })
+
+  it('notifies the desktop session gate when the remote session expires', async () => {
+    remoteClientRuntimeService.configure({ serverUrl: 'https://studio.example.com', token: 'session-token' })
+    const expired = vi.fn()
+    window.addEventListener(REMOTE_CLIENT_SESSION_EXPIRED_EVENT, expired, { once: true })
+    vi.spyOn(window, 'fetch').mockResolvedValue(new Response(undefined, { status: 401 }))
+
+    await expect(window.api.file.readExternal('/mock/feature.notes.data/note.md')).rejects.toThrow(
+      'Request failed with status 401'
+    )
+    expect(expired).toHaveBeenCalledOnce()
   })
 
   it('reads only managed files through the web file endpoint', async () => {

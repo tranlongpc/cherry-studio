@@ -37,6 +37,7 @@
     "packages/provider-registry/**/*",
     "packages/aiCore/src/**/*",
     "packages/ai-sdk-provider/src/**/*",
+    "packages/desktop-client/src/**/*",
     "src/shared/**/*",
     "tests/__mocks__/**/*",
     "tests/helpers/**/*"

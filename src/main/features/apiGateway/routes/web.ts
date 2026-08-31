@@ -22,6 +22,7 @@ import { createInternalEntryInputSchema } from '@shared/ipc/schemas/file'
 import { knowledgeRequestSchemas } from '@shared/ipc/schemas/knowledge'
 import { webSearchRequestSchemas } from '@shared/ipc/schemas/webSearch'
 import { FILE_TYPE, type FileType } from '@shared/types/file'
+import { REMOTE_CLIENT_HEADER } from '@shared/types/remoteClient'
 import type { TreeMutationPushPayload } from '@shared/utils/file'
 import { audioExts, documentExts, imageExts, textExts, videoExts } from '@shared/utils/file'
 import { Elysia } from 'elysia'
@@ -481,7 +482,9 @@ export const webRoutes = new Elysia()
         return { error: 'Invalid email or password' }
       }
       set.headers['set-cookie'] = webSessionCookie(token, new URL(request.url).protocol === 'https:')
-      return { authenticated: true }
+      return request.headers.get(REMOTE_CLIENT_HEADER) === 'desktop'
+        ? { authenticated: true, token }
+        : { authenticated: true }
     },
     { detail: { hide: true } }
   )
