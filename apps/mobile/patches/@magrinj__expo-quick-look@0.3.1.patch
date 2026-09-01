@@ -1,0 +1,13 @@
+diff --git a/ios/ExpoQuickLook.podspec b/ios/ExpoQuickLook.podspec
+index e9aa0f2406f31514136d952aa140bd78de352055..915fb65d422dc05b0a78d31cea9038dc757a479e 100644
+--- a/ios/ExpoQuickLook.podspec
++++ b/ios/ExpoQuickLook.podspec
+@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
+   s.author         = package['author']
+   s.homepage       = package['homepage']
+   s.platforms      = {
+-    :ios => '15.1'
++    :ios => '16.4'
+   }
+   s.swift_version  = '5.9'
+   s.source         = { git: 'https://github.com/magrinj/expo-quick-look.git' }

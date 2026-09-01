@@ -1,0 +1,89 @@
+name: 💡 功能建议
+description: 为本项目提出新功能建议
+title: '[Feature]: '
+labels: ['feature']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间提交功能请求！
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 问题检查清单
+      description: |
+        在提交问题之前，请确保您已完成以下步骤
+      options:
+        - label: 我明白 issue 是用于报告问题和请求功能的，而不是用于发表与主题无关的评论，我会尽可能提供详细信息以帮助解决问题。
+          required: true
+        - label: 我已经查看了置顶问题，并搜索了现有的 [open issues](https://github.com/CherryHQ/cherry-studio-app/issues)、[closed issues](https://github.com/CherryHQ/cherry-studio-app/issues?q=is%3Aissue%20state%3Aclosed) 和 [discussions](https://github.com/CherryHQ/cherry-studio-app/discussions)，没有发现类似的建议。
+          required: true
+        - label: 我已经提供了简短且描述性的标题，以便开发者在浏览问题列表时能快速理解问题，而不是像"一个建议"或"卡住了"这样的模糊标题。
+          required: true
+        - label: 最新版本的 Cherry Studio 不包含我建议的功能。
+          required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      description: 您使用的是什么平台？
+      options:
+        - iOS
+        - Android
+        - 两者都需要
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: 设备型号
+      description: 您使用的设备型号是什么？
+      placeholder: 例如：iPhone 15 Pro / Samsung Galaxy S24
+
+  - type: input
+    id: os-version
+    attributes:
+      label: 系统版本
+      description: 您的操作系统版本是什么？
+      placeholder: 例如：iOS 18.0 / Android 14
+
+  - type: input
+    id: version
+    attributes:
+      label: 应用版本
+      description: 您正在运行的 Cherry Studio 版本是什么？
+      placeholder: 例如：v0.1.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 您的功能请求是否与现有问题相关？
+      description: 请简要描述您遇到的问题。如果可能，请包含截图或录屏以帮助说明当前的情况或痛点。
+      placeholder: 我经常感到困扰，因为...（如果可以，请附上截图/录屏）
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的解决方案
+      description: 请简要描述您希望发生什么。您可以包含原型图、截图或屏幕录像，以更好地说明您提议的解决方案。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案
+      description: 请简要描述您考虑过的任何替代解决方案或功能。可以包含截图或替代方案的原型图。
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 补充信息
+      description: 添加任何其他可以帮助我们更好地理解您的功能请求的上下文、截图、原型图或录屏。

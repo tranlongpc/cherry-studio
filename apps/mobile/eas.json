@@ -1,0 +1,56 @@
+{
+  "cli": {
+    "version": ">= 16.3.2",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "node": "24.19.0",
+      "pnpm": "12.2.1",
+      "env": {
+        "PROFILE": "development"
+      },
+      "android": {
+        "buildType": "apk",
+        "withoutCredentials": "true",
+        "gradleCommand": ":app:assembleDebug -PreactNativeArchitectures=arm64-v8a"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "node": "24.19.0",
+      "pnpm": "12.2.1",
+      "env": {
+        "PROFILE": "preview"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=arm64-v8a"
+      },
+      "ios": {}
+    },
+    "production": {
+      "autoIncrement": true,
+      "channel": "production",
+      "node": "24.19.0",
+      "pnpm": "12.2.1",
+      "env": {
+        "PROFILE": "production"
+      },
+      "android": {
+        "buildType": "apk",
+        "withoutCredentials": "true",
+        "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=arm64-v8a"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6754246754"
+      }
+    }
+  }
+}
