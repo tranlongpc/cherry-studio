@@ -47,6 +47,16 @@ describe('TranslateOutputPane', () => {
     expect(screen.getByRole('button', { name: 'common.copy' })).toBeEnabled()
   })
 
+  it('shows raw translated content while markdown rendering is unavailable', () => {
+    const props = baseProps()
+    props.translatedContent = 'translated output'
+    props.enableMarkdown = true
+
+    render(<TranslateOutputPane {...props} />)
+
+    expect(screen.getByText('translated output')).toBeInTheDocument()
+  })
+
   it('shows the processing indicator while waiting for output', () => {
     const props = baseProps()
     props.translating = true

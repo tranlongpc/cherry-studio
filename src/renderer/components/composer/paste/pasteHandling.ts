@@ -47,7 +47,7 @@ export const handlePaste = async (
     )
 
     // 优先处理文本粘贴，除非剪贴板同时包含当前会话支持的图像。
-    const clipboardText = event.clipboardData?.getData('text')
+    const clipboardText = event.clipboardData?.getData('text/plain') || event.clipboardData?.getData('text')
     if (clipboardText && !hasSupportedClipboardImage) {
       // 1. 文本粘贴
       if (clipboardText.length > LONG_TEXT_PASTE_THRESHOLD) {
