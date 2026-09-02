@@ -1,4 +1,4 @@
-import { BottomSheet, Button } from '@cherrystudio/ui/components';
+import { BottomSheet, Button } from '@cherrystudio/ui-native/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';

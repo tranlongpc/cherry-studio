@@ -1,5 +1,5 @@
-import { Image } from '@cherrystudio/ui/components';
-import { resolveIcon } from '@cherrystudio/ui/icons';
+import { Image } from '@cherrystudio/ui-native/components';
+import { resolveIcon } from '@cherrystudio/ui-native/icons';
 import { Text, View } from 'react-native';
 import { useUniwind } from 'uniwind';
 

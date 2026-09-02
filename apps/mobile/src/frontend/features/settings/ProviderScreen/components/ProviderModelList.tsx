@@ -1,4 +1,4 @@
-import { ContentState } from '@cherrystudio/ui/components';
+import { ContentState } from '@cherrystudio/ui-native/components';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

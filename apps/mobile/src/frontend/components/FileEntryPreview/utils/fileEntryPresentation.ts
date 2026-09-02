@@ -1,4 +1,4 @@
-import type { FilePreviewFile, FilePreviewKind } from '@cherrystudio/ui/components';
+import type { FilePreviewFile, FilePreviewKind } from '@cherrystudio/ui-native/components';
 
 import { type FileEntry, filenameExtension } from '@/shared/data/types/file';
 

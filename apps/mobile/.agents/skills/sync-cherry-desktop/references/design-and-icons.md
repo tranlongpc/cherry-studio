@@ -2,7 +2,7 @@
 
 ## Use The Existing Pipeline
 
-Stop Metro before generators replace asset directories. Run the repository `design:*` commands; do not add a duplicate generator to this Skill. The pipeline must resolve `--desktop-root` or `CHERRY_STUDIO_DESKTOP_ROOT`, validate the desktop and `@cherrystudio/ui` package identities, reject dirty selected sources, and record the desktop commit and SHA-256 hashes.
+Stop Metro before generators replace asset directories. Run the repository `design:*` commands; do not add a duplicate generator to this Skill. The pipeline must resolve `--desktop-root` or `CHERRY_STUDIO_DESKTOP_ROOT`, validate the desktop and `@cherrystudio/ui-native` package identities, reject dirty selected sources, and record the desktop commit and SHA-256 hashes.
 
 Keep the desktop checkout read-only. Let `packages/design-tokens/src/sync-manifest.json` own the SVG baseline. Keep catalog routing, manual icon adaptations, and provider fan-out in the broad desktop Manifest.
 

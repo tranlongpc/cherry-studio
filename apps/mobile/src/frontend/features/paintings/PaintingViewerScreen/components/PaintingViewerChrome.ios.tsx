@@ -1,6 +1,6 @@
 import DownloadIcon from '@cherrystudio/app-icons/icons/download';
 import EllipsisIcon from '@cherrystudio/app-icons/icons/ellipsis';
-import type { MenuItem } from '@cherrystudio/ui/components';
+import type { MenuItem } from '@cherrystudio/ui-native/components';
 import { Stack } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

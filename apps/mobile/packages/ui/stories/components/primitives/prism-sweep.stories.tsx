@@ -1,4 +1,4 @@
-import { PrismSweep } from '@cherrystudio/ui/components';
+import { PrismSweep } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { Text, View } from 'react-native';
 import { ScopedTheme } from 'uniwind';

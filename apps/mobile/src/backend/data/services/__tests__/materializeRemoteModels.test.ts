@@ -1,4 +1,7 @@
-import { MODEL_CAPABILITY, REASONING_FORMAT_PROFILES } from '@cherrystudio/provider-registry';
+import {
+  MODEL_CAPABILITY,
+  REASONING_FORMAT_PROFILES,
+} from '@cherrystudio/mobile-provider-registry';
 
 import { materializeRemoteModels } from '@/backend/data/services/materializeRemoteModels';
 import {

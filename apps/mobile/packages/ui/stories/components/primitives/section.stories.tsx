@@ -3,7 +3,7 @@ import CircleUserRoundIcon from '@cherrystudio/app-icons/icons/circle-user-round
 import InfoIcon from '@cherrystudio/app-icons/icons/info';
 import PaletteIcon from '@cherrystudio/app-icons/icons/palette';
 import Trash2Icon from '@cherrystudio/app-icons/icons/trash-2';
-import { Button, Section, Switch } from '@cherrystudio/ui/components';
+import { Button, Section, Switch } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';

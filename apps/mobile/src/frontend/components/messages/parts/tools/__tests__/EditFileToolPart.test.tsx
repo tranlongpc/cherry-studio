@@ -9,7 +9,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const { createElement } = jest.requireActual('react');
   return {
     MessagePart: {

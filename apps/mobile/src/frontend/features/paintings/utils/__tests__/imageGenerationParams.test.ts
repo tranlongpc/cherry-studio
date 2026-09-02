@@ -1,4 +1,4 @@
-import type { ImageGenerationSupport } from '@cherrystudio/provider-registry';
+import type { ImageGenerationSupport } from '@cherrystudio/mobile-provider-registry';
 
 import {
   imageParamsAspectRatio,

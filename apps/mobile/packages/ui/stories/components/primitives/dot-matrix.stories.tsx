@@ -5,7 +5,7 @@ import {
   DotMatrixSquare20,
   PrismSweep,
   type DotMatrixSquare2Props,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import type { ComponentType } from 'react';
 import { ScrollView, Text, View } from 'react-native';

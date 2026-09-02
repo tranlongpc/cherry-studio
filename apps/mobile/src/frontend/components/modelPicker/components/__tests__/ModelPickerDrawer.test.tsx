@@ -3,7 +3,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { ModelPickerDrawer } from '../ModelPickerDrawer';
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const { TextInput: MockTextInput, View: MockView } = jest.requireActual('react-native');
 
   return {

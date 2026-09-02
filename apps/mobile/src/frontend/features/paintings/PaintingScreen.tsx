@@ -1,4 +1,4 @@
-import { ContentState } from '@cherrystudio/ui/components';
+import { ContentState } from '@cherrystudio/ui-native/components';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { View } from 'react-native';

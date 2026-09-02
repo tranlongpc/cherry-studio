@@ -11,7 +11,7 @@ import {
   type ImageGenerationMode,
   type ImageGenerationSupport,
   type SupportSpec,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import * as z from 'zod';
 
 const MAX_INPUT_IMAGES = 1;

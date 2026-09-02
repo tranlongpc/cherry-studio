@@ -2,7 +2,7 @@ import {
   objectValues,
   REASONING_EFFORT,
   type ReasoningEffort,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import { deriveThinkingOptions, nearestThinkingOption } from '@cherrystudio/universal/ai/reasoning';
 import type { ReasoningEffortOption } from '@cherrystudio/universal/types/aiSdk';
 

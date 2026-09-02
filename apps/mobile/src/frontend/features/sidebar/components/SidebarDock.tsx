@@ -1,6 +1,6 @@
 import SettingsIcon from '@cherrystudio/app-icons/icons/settings';
 import SquarePenIcon from '@cherrystudio/app-icons/icons/square-pen';
-import { Surface } from '@cherrystudio/ui/components';
+import { Surface } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { Pressable } from 'react-native-gesture-handler';

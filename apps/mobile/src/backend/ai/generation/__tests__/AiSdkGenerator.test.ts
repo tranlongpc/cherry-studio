@@ -1,8 +1,8 @@
-import { createAgent } from '@cherrystudio/ai-core';
 import {
   createToolCallLimitStopCondition,
   markTrustedLocalToolTerminalFailure,
 } from '@cherrystudio/ai-runtime/runtime';
+import { createAgent } from '@cherrystudio/mobile-ai-core';
 
 import { AiSdkGenerator } from '../AiSdkGenerator';
 
@@ -15,7 +15,7 @@ const testUsage = {
   totalTokens: 3,
 };
 
-jest.mock('@cherrystudio/ai-core', () => ({
+jest.mock('@cherrystudio/mobile-ai-core', () => ({
   createAgent: jest.fn(async () => ({ generate: mockGenerate })),
 }));
 

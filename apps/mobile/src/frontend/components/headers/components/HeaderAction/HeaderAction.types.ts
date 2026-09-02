@@ -1,4 +1,4 @@
-import type { MenuItem } from '@cherrystudio/ui/components';
+import type { MenuItem } from '@cherrystudio/ui-native/components';
 import type { ComponentType, ReactElement } from 'react';
 
 export type HeaderActionIconProps = {

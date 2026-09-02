@@ -1,5 +1,5 @@
 import BotIcon from '@cherrystudio/app-icons/icons/bot';
-import { Avatar } from '@cherrystudio/ui/components';
+import { Avatar } from '@cherrystudio/ui-native/components';
 
 import { useThemeColor } from '@/frontend/hooks/useThemeColor';
 

@@ -1,4 +1,4 @@
-import type { MenuItem } from '@cherrystudio/ui/components';
+import type { MenuItem } from '@cherrystudio/ui-native/components';
 import type { Href } from 'expo-router';
 import type { ReactElement } from 'react';
 

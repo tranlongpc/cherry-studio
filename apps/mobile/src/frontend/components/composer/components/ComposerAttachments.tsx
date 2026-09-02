@@ -1,4 +1,4 @@
-import { Composer } from '@cherrystudio/ui/components';
+import { Composer } from '@cherrystudio/ui-native/components';
 
 import { useComposerActions, useComposerState } from '../context/ComposerProvider';
 import { ComposerAttachmentStrip } from './ComposerAttachmentStrip';
@@ -6,7 +6,7 @@ import { ComposerAttachmentStrip } from './ComposerAttachmentStrip';
 /**
  * The staged attachments, in a row that swells and shrinks with them.
  *
- * `@cherrystudio/ui` used to ship a `Composer.Attachments`; it was removed once
+ * `@cherrystudio/ui-native` used to ship a `Composer.Attachments`; it was removed once
  * both real callers needed a shape it did not have. This is that row, one layer
  * up, where knowing what an attachment *is* is allowed.
  */

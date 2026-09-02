@@ -1,6 +1,6 @@
 import SearchIcon from '@cherrystudio/app-icons/icons/search';
 import WrenchIcon from '@cherrystudio/app-icons/icons/wrench';
-import { FilePreview, MarkdownText, MessagePart } from '@cherrystudio/ui/components';
+import { FilePreview, MarkdownText, MessagePart } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';

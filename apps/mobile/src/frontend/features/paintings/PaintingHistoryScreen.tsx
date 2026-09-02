@@ -1,5 +1,5 @@
 import EllipsisIcon from '@cherrystudio/app-icons/icons/ellipsis';
-import { type MenuItem } from '@cherrystudio/ui/components';
+import { type MenuItem } from '@cherrystudio/ui-native/components';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

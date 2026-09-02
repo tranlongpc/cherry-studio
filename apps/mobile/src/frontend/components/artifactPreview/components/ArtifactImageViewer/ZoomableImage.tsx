@@ -1,4 +1,4 @@
-import { Image } from '@cherrystudio/ui/components';
+import { Image } from '@cherrystudio/ui-native/components';
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';

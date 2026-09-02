@@ -1,9 +1,3 @@
-import {
-  type AiPlugin,
-  generateImage as aiCoreGenerateImage,
-  type RuntimeProviderCallEvent,
-  type RuntimeProviderCallHandler,
-} from '@cherrystudio/ai-core';
 import type { AppProviderSettingsMap } from '@cherrystudio/ai-runtime/provider';
 import type { AiBaseRequest, ListModelsRequest } from '@cherrystudio/ai-runtime/runtime';
 import {
@@ -12,7 +6,13 @@ import {
   mergeImageProviderOptions,
   splitImageParamValues,
 } from '@cherrystudio/ai-runtime/utils';
-import type { ImageGenerationMode, ParamValues } from '@cherrystudio/provider-registry';
+import {
+  type AiPlugin,
+  generateImage as aiCoreGenerateImage,
+  type RuntimeProviderCallEvent,
+  type RuntimeProviderCallHandler,
+} from '@cherrystudio/mobile-ai-core';
+import type { ImageGenerationMode, ParamValues } from '@cherrystudio/mobile-provider-registry';
 import type { LanguageModelUsage, ModelMessage } from 'ai';
 import { fetch as expoFetch } from 'expo/fetch';
 

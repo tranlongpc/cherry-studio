@@ -44,7 +44,7 @@ dispatchers with deterministic in-memory i18n, preference, file, and data provid
 start the production backend.
 
 Use kebab-case filenames and import components through the public
-`@cherrystudio/ui/components` entry point. Run Storybook from the workspace root:
+`@cherrystudio/ui-native/components` entry point. Run Storybook from the workspace root:
 
 ```sh
 pnpm storybook

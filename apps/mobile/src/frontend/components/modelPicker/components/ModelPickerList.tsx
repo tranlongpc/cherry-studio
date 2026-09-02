@@ -1,5 +1,5 @@
 import CheckIcon from '@cherrystudio/app-icons/icons/check';
-import { cn } from '@cherrystudio/ui/utils';
+import { cn } from '@cherrystudio/ui-native/utils';
 import {
   LegendList,
   type LegendListRef,

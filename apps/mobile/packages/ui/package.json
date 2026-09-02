@@ -1,5 +1,5 @@
 {
-  "name": "@cherrystudio/ui",
+  "name": "@cherrystudio/ui-native",
   "version": "0.0.1-alpha.1",
   "description": "Shared native UI components for Cherry Studio",
   "homepage": "https://github.com/CherryHQ/cherry-studio-app",

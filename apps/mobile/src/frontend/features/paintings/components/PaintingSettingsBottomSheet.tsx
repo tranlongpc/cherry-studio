@@ -1,5 +1,5 @@
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
-import type { CanonicalParamKey } from '@cherrystudio/provider-registry';
+import type { CanonicalParamKey } from '@cherrystudio/mobile-provider-registry';
 import {
   BottomSheet,
   Description,
@@ -11,7 +11,7 @@ import {
   Switch,
   TextAnimation,
   TextField,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

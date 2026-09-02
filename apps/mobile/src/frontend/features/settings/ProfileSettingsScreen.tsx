@@ -1,4 +1,4 @@
-import { Input, Label, TextField, useAlert } from '@cherrystudio/ui/components';
+import { Input, Label, TextField, useAlert } from '@cherrystudio/ui-native/components';
 import { loggerService } from '@logger';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';

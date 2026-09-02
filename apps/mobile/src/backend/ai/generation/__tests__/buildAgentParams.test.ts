@@ -1,5 +1,5 @@
 import type { CallOverrides } from '@cherrystudio/ai-runtime/runtime';
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import type { ReasoningEffortOption } from '@cherrystudio/universal/types/aiSdk';
 
 import { providerRegistryService } from '@/backend/data/services/ProviderRegistryService';

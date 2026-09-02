@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import type { Assistant } from '@cherrystudio/universal/data/types/assistant';
 import type { Model, UniqueModelId } from '@cherrystudio/universal/data/types/model';
 import type { Provider } from '@cherrystudio/universal/data/types/provider';

@@ -19,7 +19,7 @@ import { ProviderCreationError } from './utils'
  *
  * @example
  * ```typescript
- * import { extensionRegistry } from '@cherrystudio/ai-core/provider'
+ * import { extensionRegistry } from '@cherrystudio/mobile-ai-core/provider'
  * import { OpenAIExtension } from './extensions/openai'
  *
  * // 注册 extension

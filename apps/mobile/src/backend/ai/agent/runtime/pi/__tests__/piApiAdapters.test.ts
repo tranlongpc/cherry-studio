@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import type { AgentOptions } from '@earendil-works/pi-agent-core/agent';
 import type { Context, FetchFunction, Model as PiModel } from '@earendil-works/pi-ai';
 

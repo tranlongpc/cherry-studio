@@ -127,7 +127,7 @@ jest.mock('@legendapp/list/keyboard', () => {
   };
 });
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   ContextMenuScrollBoundary: ({
     children,
     ...handlers

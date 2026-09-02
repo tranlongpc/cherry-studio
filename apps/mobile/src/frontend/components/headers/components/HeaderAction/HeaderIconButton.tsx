@@ -1,4 +1,4 @@
-import { cn } from '@cherrystudio/ui/utils';
+import { cn } from '@cherrystudio/ui-native/utils';
 import type { ReactNode } from 'react';
 import { Pressable } from 'react-native';
 

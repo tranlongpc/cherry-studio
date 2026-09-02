@@ -19,7 +19,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useAlert: () => ({ alert: { show: mockAlertShow } }),
 }));
 

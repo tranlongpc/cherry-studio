@@ -8,7 +8,7 @@ import {
   ImageGenerationLoader,
   Section,
   useAlert,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';

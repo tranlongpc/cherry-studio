@@ -1,4 +1,4 @@
-import { Alert, Button, type AlertProps } from '@cherrystudio/ui/components';
+import { Alert, Button, type AlertProps } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';

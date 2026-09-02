@@ -1,4 +1,4 @@
-import type { BackgroundActivityPresentation } from '@cherrystudio/ui/background-activity';
+import type { BackgroundActivityPresentation } from '@cherrystudio/ui-native/background-activity';
 
 /**
  * Painting background-generation activity contract, shared between the widget

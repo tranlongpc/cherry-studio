@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE, type EndpointType } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE, type EndpointType } from '@cherrystudio/mobile-provider-registry';
 
 import {
   resolveProviderConnection,

@@ -1,4 +1,4 @@
-import { SearchField } from '@cherrystudio/ui/components';
+import { SearchField } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 import type { ModelSearchFieldProps } from './ModelSearchField.types';

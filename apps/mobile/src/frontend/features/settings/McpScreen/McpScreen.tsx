@@ -1,6 +1,6 @@
 import PlusIcon from '@cherrystudio/app-icons/icons/plus';
-import { ContentState, Image } from '@cherrystudio/ui/components';
-import { resolveProviderIcon } from '@cherrystudio/ui/icons';
+import { ContentState, Image } from '@cherrystudio/ui-native/components';
+import { resolveProviderIcon } from '@cherrystudio/ui-native/icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';

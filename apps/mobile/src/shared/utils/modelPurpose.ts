@@ -3,7 +3,7 @@ import {
   endpointImpliedCapability,
   MODALITY,
   MODEL_CAPABILITY,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 
 import type { Model } from '@/shared/data/types/model';
 

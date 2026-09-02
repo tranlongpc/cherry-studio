@@ -115,7 +115,7 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/frontend/utils/constants', () => ({ isIOS: false }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useComposerDockLayout: () => ({
     contentBottomInset: 88,
     handleInputHeightChange: jest.fn(),

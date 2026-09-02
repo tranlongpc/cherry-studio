@@ -3,4 +3,4 @@ export {
   OpenAICompatibleRerankingModel,
   type OpenAICompatibleRerankingModelConfig,
   type OpenAICompatibleRerankingModelSettings
-} from '@cherrystudio/ai-sdk-provider'
+} from '@cherrystudio/mobile-ai-sdk-provider'

@@ -1,4 +1,4 @@
-import { BottomSheet, type BottomSheetSize, Section } from '@cherrystudio/ui/components';
+import { BottomSheet, type BottomSheetSize, Section } from '@cherrystudio/ui-native/components';
 import type { ReactNode } from 'react';
 import { ScrollView } from 'react-native';
 

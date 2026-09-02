@@ -1,4 +1,4 @@
-import { MessagePart } from '@cherrystudio/ui/components';
+import { MessagePart } from '@cherrystudio/ui-native/components';
 import {
   type NormalizedMcpContent,
   type NormalizedMcpResult,

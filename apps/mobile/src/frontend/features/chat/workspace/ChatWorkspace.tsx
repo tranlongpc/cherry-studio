@@ -1,4 +1,4 @@
-import { ContentState, useAlert } from '@cherrystudio/ui/components';
+import { ContentState, useAlert } from '@cherrystudio/ui-native/components';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

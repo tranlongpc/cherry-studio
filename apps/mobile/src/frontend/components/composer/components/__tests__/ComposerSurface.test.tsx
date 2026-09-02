@@ -29,7 +29,7 @@ let mockComposerProps: MockComposerProps | undefined;
 let mockComposerActions: ReturnType<typeof useComposerActions> | undefined;
 let mockComposerState: ReturnType<typeof useComposerState> | undefined;
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 

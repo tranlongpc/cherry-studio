@@ -245,7 +245,7 @@ export const WIRE_REGISTRY: Record<string, WireRegistration> = {
   azure: { profile: OPENAI_WIRE_PROFILE, dualOpenAI: true },
   'azure-responses': { profile: OPENAI_WIRE_PROFILE, dualOpenAI: true },
   huggingface: { profile: OPENAI_WIRE_PROFILE, dualOpenAI: true },
-  // passthrough: CherryIn's own Google-image wrapper (@cherrystudio/ai-sdk-provider)
+  // passthrough: CherryIn's own Google-image wrapper (@cherrystudio/mobile-ai-sdk-provider)
   // reads raw camelCase personGeneration/imageResolution off this key — those aren't
   // OPENAI_WIRE_PROFILE fields, so without passthrough they're silently dropped.
   cherryin: { profile: OPENAI_WIRE_PROFILE, dualOpenAI: true, passthrough: true },

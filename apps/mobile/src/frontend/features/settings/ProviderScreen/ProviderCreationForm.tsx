@@ -1,4 +1,4 @@
-import { Button, useAlert } from '@cherrystudio/ui/components';
+import { Button, useAlert } from '@cherrystudio/ui-native/components';
 import * as Crypto from 'expo-crypto';
 import { type ReactElement, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

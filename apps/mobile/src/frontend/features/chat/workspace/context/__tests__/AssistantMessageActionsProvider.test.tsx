@@ -34,7 +34,7 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useAlert: () => ({ alert: { show: mockAlertShow } }),
 }));
 

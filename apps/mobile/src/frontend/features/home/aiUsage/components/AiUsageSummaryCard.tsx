@@ -1,7 +1,7 @@
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
 import RefreshCwIcon from '@cherrystudio/app-icons/icons/refresh-cw';
-import { Button, ContentState, Section } from '@cherrystudio/ui/components';
-import { resolveProviderIcon } from '@cherrystudio/ui/icons';
+import { Button, ContentState, Section } from '@cherrystudio/ui-native/components';
+import { resolveProviderIcon } from '@cherrystudio/ui-native/icons';
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';

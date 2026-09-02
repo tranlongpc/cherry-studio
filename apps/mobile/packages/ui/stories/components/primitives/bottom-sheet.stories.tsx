@@ -1,5 +1,5 @@
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
-import { BottomSheet, Button } from '@cherrystudio/ui/components';
+import { BottomSheet, Button } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';

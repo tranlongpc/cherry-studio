@@ -1,4 +1,4 @@
-import { Button, ContentState, Section } from '@cherrystudio/ui/components';
+import { Button, ContentState, Section } from '@cherrystudio/ui-native/components';
 import { type ReactElement, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';

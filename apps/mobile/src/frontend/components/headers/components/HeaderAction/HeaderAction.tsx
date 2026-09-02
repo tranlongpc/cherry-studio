@@ -1,5 +1,5 @@
-import { ActionMenu } from '@cherrystudio/ui/components';
-import { cn } from '@cherrystudio/ui/utils';
+import { ActionMenu } from '@cherrystudio/ui-native/components';
+import { cn } from '@cherrystudio/ui-native/utils';
 import { Pressable, Text, View } from 'react-native';
 
 import type { HeaderActionProps } from './HeaderAction.types';

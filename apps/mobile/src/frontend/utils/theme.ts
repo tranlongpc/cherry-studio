@@ -1,4 +1,4 @@
-import { createTypographyCSSVariables } from '@cherrystudio/ui/utils';
+import { createTypographyCSSVariables } from '@cherrystudio/ui-native/utils';
 import { Uniwind } from 'uniwind';
 
 import { type FontSizeStep, ThemeMode } from '@/shared/data/preference';

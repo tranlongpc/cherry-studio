@@ -1,5 +1,5 @@
-import type { ComposerInputHandle } from '@cherrystudio/ui/components';
-import { Composer } from '@cherrystudio/ui/components';
+import type { ComposerInputHandle } from '@cherrystudio/ui-native/components';
+import { Composer } from '@cherrystudio/ui-native/components';
 import { type ReactNode, useEffect } from 'react';
 import { KeyboardController } from 'react-native-keyboard-controller';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
@@ -38,7 +38,7 @@ jest.mock('@cherrystudio/app-icons/icons/camera', () => () => null);
 jest.mock('@cherrystudio/app-icons/icons/file', () => () => null);
 jest.mock('@cherrystudio/app-icons/icons/images', () => () => null);
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const React = jest.requireActual('react');
   const { Pressable, View } = jest.requireActual('react-native');
 

@@ -1,4 +1,4 @@
-import { ContentState, Spinner, Switch } from '@cherrystudio/ui/components';
+import { ContentState, Spinner, Switch } from '@cherrystudio/ui-native/components';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

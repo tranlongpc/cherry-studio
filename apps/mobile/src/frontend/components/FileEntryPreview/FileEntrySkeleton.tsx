@@ -1,4 +1,4 @@
-import { Skeleton } from '@cherrystudio/ui/components';
+import { Skeleton } from '@cherrystudio/ui-native/components';
 
 const defaultSize = 112;
 

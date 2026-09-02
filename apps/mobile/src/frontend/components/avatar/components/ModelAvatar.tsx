@@ -1,4 +1,4 @@
-import { resolveIcon } from '@cherrystudio/ui/icons';
+import { resolveIcon } from '@cherrystudio/ui-native/icons';
 import { useUniwind } from 'uniwind';
 
 import type { Model } from '@/shared/data/types/model';

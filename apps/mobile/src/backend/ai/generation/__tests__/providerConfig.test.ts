@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 
 import type { ResolvedProviderApiKey } from '@/backend/data/services/ProviderService';
 import { createUniqueModelId, type Model } from '@/shared/data/types/model';

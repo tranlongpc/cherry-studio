@@ -1,4 +1,4 @@
-import { wireName } from '@cherrystudio/provider-registry';
+import { wireName } from '@cherrystudio/mobile-provider-registry';
 import type { CanonicalParamKey } from '@cherrystudio/universal/data/types/model';
 import { describe, expect, it } from 'vitest';
 

@@ -1,4 +1,4 @@
-import { MessagePart } from '@cherrystudio/ui/components';
+import { MessagePart } from '@cherrystudio/ui-native/components';
 
 import type { CherryMessagePart } from '@/shared/data/types/message';
 

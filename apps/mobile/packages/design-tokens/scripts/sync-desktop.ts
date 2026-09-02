@@ -323,7 +323,7 @@ async function main() {
   const { check, desktopRoot } = parseArguments();
   const desktopUi = path.join(desktopRoot, 'packages/ui');
   const packageJson = JSON.parse(await readFile(path.join(desktopUi, 'package.json'), 'utf8'));
-  if (packageJson.name !== '@cherrystudio/ui') {
+  if (packageJson.name !== '@cherrystudio/ui-native') {
     throw new Error('[design-sync] --desktop-root does not contain the Cherry Studio UI package');
   }
 

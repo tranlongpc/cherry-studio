@@ -1,4 +1,4 @@
-import { Slider, type SliderProps } from '@cherrystudio/ui/components';
+import { Slider, type SliderProps } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';

@@ -1,4 +1,4 @@
-import { Input, type InputProps } from '@cherrystudio/ui/components';
+import { Input, type InputProps } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';

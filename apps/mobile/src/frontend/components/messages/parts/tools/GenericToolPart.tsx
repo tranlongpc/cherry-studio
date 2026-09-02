@@ -1,4 +1,4 @@
-import { hasMessagePartValue, MessagePart } from '@cherrystudio/ui/components';
+import { hasMessagePartValue, MessagePart } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 

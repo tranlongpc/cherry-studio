@@ -8,7 +8,7 @@ import { ChatMessage } from '../ChatMessage';
 const mockCopyAssistantMessage = jest.fn();
 let mockMenuItems: readonly { disabled?: boolean; id: string }[] = [];
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   ContextMenu: ({ children, items }: { children: ReactNode; items: typeof mockMenuItems }) => {
     mockMenuItems = items;
     return children;

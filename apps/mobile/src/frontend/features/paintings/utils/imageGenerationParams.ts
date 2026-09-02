@@ -6,7 +6,7 @@ import {
   type ImageModeDef,
   type ParamValues,
   type SupportSpec,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 
 export type ImageParamDraft = Record<string, unknown>;
 

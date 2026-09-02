@@ -9,7 +9,7 @@ import {
   Composer,
   type ComposerInputHandle,
   type ComposerProps,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { type ReactNode, type RefObject, useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';

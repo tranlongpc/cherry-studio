@@ -1,5 +1,5 @@
-import { Composer } from '@cherrystudio/ui/components';
-import { duration, easing } from '@cherrystudio/ui/motion';
+import { Composer } from '@cherrystudio/ui-native/components';
+import { duration, easing } from '@cherrystudio/ui-native/motion';
 import { Canvas, Circle, Line, Path, vec } from '@shopify/react-native-skia';
 import { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';

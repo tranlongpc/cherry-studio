@@ -3,7 +3,7 @@ import {
   MODEL_CAPABILITY,
   REASONING_EFFORT,
   REASONING_FORMAT_PROFILES,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 
 import {
   mergePresetModel,

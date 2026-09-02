@@ -1,5 +1,5 @@
 import SparklesIcon from '@cherrystudio/app-icons/icons/sparkles';
-import { ContentState, Tabs } from '@cherrystudio/ui/components';
+import { ContentState, Tabs } from '@cherrystudio/ui-native/components';
 import {
   LegendList,
   type LegendListRef,

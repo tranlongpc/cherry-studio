@@ -1,7 +1,7 @@
 import CheckIcon from '@cherrystudio/app-icons/icons/check';
 import CopyIcon from '@cherrystudio/app-icons/icons/copy';
 import EllipsisIcon from '@cherrystudio/app-icons/icons/ellipsis';
-import { ActionMenu, Button, type MenuItem } from '@cherrystudio/ui/components';
+import { ActionMenu, Button, type MenuItem } from '@cherrystudio/ui-native/components';
 import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

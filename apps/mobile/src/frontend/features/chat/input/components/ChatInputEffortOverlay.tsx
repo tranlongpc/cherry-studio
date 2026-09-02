@@ -1,5 +1,5 @@
-import { Portal, TextAnimation } from '@cherrystudio/ui/components';
-import { easing } from '@cherrystudio/ui/motion';
+import { Portal, TextAnimation } from '@cherrystudio/ui-native/components';
+import { easing } from '@cherrystudio/ui-native/motion';
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';

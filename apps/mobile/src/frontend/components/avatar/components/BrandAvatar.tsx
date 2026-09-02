@@ -1,4 +1,4 @@
-import { Avatar, Image } from '@cherrystudio/ui/components';
+import { Avatar, Image } from '@cherrystudio/ui-native/components';
 import { type ComponentProps, type ReactNode } from 'react';
 
 import {

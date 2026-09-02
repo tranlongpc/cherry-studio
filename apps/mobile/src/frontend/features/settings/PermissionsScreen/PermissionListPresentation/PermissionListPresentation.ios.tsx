@@ -1,4 +1,4 @@
-import { Image } from '@cherrystudio/ui/components';
+import { Image } from '@cherrystudio/ui-native/components';
 
 import type { PermissionKind } from '../permissionConfig';
 

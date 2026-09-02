@@ -1,5 +1,5 @@
 import { createAiUsageCaptureContext } from '@cherrystudio/ai-runtime/utils';
-import { MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 import type { FetchFunction, Model as PiModel, ModelThinkingLevel } from '@earendil-works/pi-ai';
 import { fetch as expoFetch } from 'expo/fetch';
 

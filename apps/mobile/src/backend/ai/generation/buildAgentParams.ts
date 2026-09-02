@@ -1,5 +1,4 @@
 import type { ProviderOptions } from '@ai-sdk/provider-utils';
-import type { AiPlugin } from '@cherrystudio/ai-core';
 import { type ProviderConfig, resolveProviderOptionsKey } from '@cherrystudio/ai-runtime/provider';
 import {
   buildAgentPlugins,
@@ -16,12 +15,13 @@ import {
   getTimeout,
   resolveReasoningInvocation,
 } from '@cherrystudio/ai-runtime/utils';
+import type { AiPlugin } from '@cherrystudio/mobile-ai-core';
 import {
   ENDPOINT_TYPE,
   endpointImpliedCapability,
   MODEL_CAPABILITY,
   type EndpointType,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import { type ToolCallRepairFunction, type ToolSet } from 'ai';
 import * as Crypto from 'expo-crypto';
 

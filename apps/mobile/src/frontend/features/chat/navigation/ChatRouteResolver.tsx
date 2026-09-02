@@ -1,4 +1,4 @@
-import { ContentState } from '@cherrystudio/ui/components';
+import { ContentState } from '@cherrystudio/ui-native/components';
 import { useRouter } from 'expo-router';
 import { type ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';

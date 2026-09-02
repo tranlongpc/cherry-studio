@@ -1,5 +1,5 @@
 import DownloadIcon from '@cherrystudio/app-icons/icons/download';
-import { Button, ContentState, useAlert, useToast } from '@cherrystudio/ui/components';
+import { Button, ContentState, useAlert, useToast } from '@cherrystudio/ui-native/components';
 import { SectionList } from '@legendapp/list/section-list';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect, useRouter } from 'expo-router';

@@ -1,5 +1,5 @@
-import type { ProtoProviderConfig } from '@cherrystudio/provider-registry';
-import { buildRuntimeEndpointConfigs, ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import type { ProtoProviderConfig } from '@cherrystudio/mobile-provider-registry';
+import { buildRuntimeEndpointConfigs, ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 
 import type { ApiFeatures, AuthConfig } from '@/shared/data/types/provider';
 

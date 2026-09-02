@@ -1,6 +1,6 @@
 import BotIcon from '@cherrystudio/app-icons/icons/bot';
 import RefreshCwIcon from '@cherrystudio/app-icons/icons/refresh-cw';
-import { ContentState } from '@cherrystudio/ui/components';
+import { ContentState } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { fn } from 'storybook/test';

@@ -2,7 +2,7 @@ import {
   ENDPOINT_TYPE,
   MODEL_CAPABILITY,
   type EndpointType,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 
 import type { Model } from '@/shared/data/types/model';
 import { DEFAULT_API_FEATURES, type Provider } from '@/shared/data/types/provider';

@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 
 import { resolveDmxapiChatFamily, resolveDmxapiChatRoute } from './dmxapiRouting';
 

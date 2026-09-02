@@ -1,5 +1,11 @@
 import ChevronDownIcon from '@cherrystudio/app-icons/icons/chevron-down';
-import { BottomSheet, ContentState, Input, Section, useAlert } from '@cherrystudio/ui/components';
+import {
+  BottomSheet,
+  ContentState,
+  Input,
+  Section,
+  useAlert,
+} from '@cherrystudio/ui-native/components';
 import { loggerService } from '@logger';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';

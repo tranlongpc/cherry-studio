@@ -33,13 +33,13 @@ Mobile Agent Host
             ├─ Streamable HTTP MCP
             ├─ device capabilities
             ├─ web search and fetch
-            ├─ image generation → AiService / @cherrystudio/ai-core / AI SDK
+            ├─ image generation → AiService / @cherrystudio/mobile-ai-core / AI SDK
             └─ managed-file write
 ```
 
 Pi never imports `AiService`, AI SDK, Expo modules, SQLite services, or MCP persistence. A
 capability adapter closes over the narrow application service it needs and is exposed to Pi only as
-a [`RuntimeTool`](./agent-runtime.md#tools). AI SDK and `@cherrystudio/ai-core` are model-capability
+a [`RuntimeTool`](./agent-runtime.md#tools). AI SDK and `@cherrystudio/mobile-ai-core` are model-capability
 implementations behind those adapters; they never become a second conversation Runtime.
 
 ## Tool Catalog And Bindings
@@ -289,7 +289,7 @@ OS-sanctioned continuation mechanisms described in
 ### Image Generation
 
 - The image tool calls an application-owned generation capability that may use `AiService`,
-  `@cherrystudio/ai-core`, and AI SDK internally.
+  `@cherrystudio/mobile-ai-core`, and AI SDK internally.
 - Pi supplies the validated generation request but does not construct provider SDK options or own
   provider credentials, usage accounting, download, persistence, or cleanup.
 - Successful output is imported into managed file storage before the tool reports an artifact.

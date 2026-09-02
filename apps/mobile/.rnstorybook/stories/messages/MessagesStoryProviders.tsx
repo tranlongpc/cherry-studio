@@ -1,4 +1,4 @@
-import { Alert } from '@cherrystudio/ui/components';
+import { Alert } from '@cherrystudio/ui-native/components';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createInstance } from 'i18next';
 import type { PropsWithChildren } from 'react';

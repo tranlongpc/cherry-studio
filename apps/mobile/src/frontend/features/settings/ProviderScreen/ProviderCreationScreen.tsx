@@ -1,4 +1,4 @@
-import { ContentState, Spinner } from '@cherrystudio/ui/components';
+import { ContentState, Spinner } from '@cherrystudio/ui-native/components';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';

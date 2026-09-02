@@ -1,6 +1,6 @@
 import CameraIcon from '@cherrystudio/app-icons/icons/camera';
 import PencilIcon from '@cherrystudio/app-icons/icons/pencil';
-import { Avatar } from '@cherrystudio/ui/components';
+import { Avatar } from '@cherrystudio/ui-native/components';
 import type { ReactNode } from 'react';
 
 import { useAvatar } from '@/frontend/hooks/useAvatar';

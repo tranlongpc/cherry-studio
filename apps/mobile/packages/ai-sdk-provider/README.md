@@ -1,4 +1,4 @@
-# @cherrystudio/ai-sdk-provider
+# @cherrystudio/mobile-ai-sdk-provider
 
 CherryIN provider bundle for the [Vercel AI SDK](https://ai-sdk.dev/).  
 It exposes the CherryIN OpenAI-compatible entrypoints and dynamically routes Anthropic and Gemini model ids to their CherryIN upstream equivalents.
@@ -6,9 +6,9 @@ It exposes the CherryIN OpenAI-compatible entrypoints and dynamically routes Ant
 ## Installation
 
 ```bash
-npm install ai @cherrystudio/ai-sdk-provider @ai-sdk/anthropic @ai-sdk/google @ai-sdk/openai
+npm install ai @cherrystudio/mobile-ai-sdk-provider @ai-sdk/anthropic @ai-sdk/google @ai-sdk/openai
 # or
-pnpm add ai @cherrystudio/ai-sdk-provider @ai-sdk/anthropic @ai-sdk/google @ai-sdk/openai
+pnpm add ai @cherrystudio/mobile-ai-sdk-provider @ai-sdk/anthropic @ai-sdk/google @ai-sdk/openai
 ```
 
 > **Note**: This package requires peer dependencies `ai`, `@ai-sdk/anthropic`, `@ai-sdk/google`, and `@ai-sdk/openai` to be installed.
@@ -16,7 +16,7 @@ pnpm add ai @cherrystudio/ai-sdk-provider @ai-sdk/anthropic @ai-sdk/google @ai-s
 ## Usage
 
 ```ts
-import { createCherryIn, cherryIn } from '@cherrystudio/ai-sdk-provider'
+import { createCherryIn, cherryIn } from '@cherrystudio/mobile-ai-sdk-provider'
 
 const cherryInProvider = createCherryIn({
   apiKey: process.env.CHERRYIN_API_KEY,

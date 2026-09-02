@@ -5,11 +5,11 @@ component behavior and platform boundaries live in [UI Components](../references
 
 ## Start With CherryUI
 
-Search `@cherrystudio/ui/components` and read `packages/ui/README.md` before creating a product
+Search `@cherrystudio/ui-native/components` and read `packages/ui/README.md` before creating a product
 interaction primitive. Product code imports shared components from the component-only entry point:
 
 ```tsx
-import { Button, Section, TextField } from '@cherrystudio/ui/components';
+import { Button, Section, TextField } from '@cherrystudio/ui-native/components';
 ```
 
 Keep a component feature-local when its state, language, or interaction belongs to one business

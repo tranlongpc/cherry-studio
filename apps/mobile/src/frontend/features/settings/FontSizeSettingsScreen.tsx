@@ -1,5 +1,5 @@
-import { Slider, useAlert } from '@cherrystudio/ui/components';
-import { normalizeFontSizeStep } from '@cherrystudio/ui/utils';
+import { Slider, useAlert } from '@cherrystudio/ui-native/components';
+import { normalizeFontSizeStep } from '@cherrystudio/ui-native/utils';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';

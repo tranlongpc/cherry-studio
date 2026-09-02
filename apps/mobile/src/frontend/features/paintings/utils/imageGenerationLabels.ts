@@ -1,4 +1,4 @@
-import type { CanonicalParamKey } from '@cherrystudio/provider-registry';
+import type { CanonicalParamKey } from '@cherrystudio/mobile-provider-registry';
 import type { TFunction } from 'i18next';
 
 import type { ImageParamDraft, ImageParamField } from './imageGenerationParams';

@@ -1,4 +1,4 @@
-import { Tabs } from '@cherrystudio/ui/components';
+import { Tabs } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 import { PROVIDER_MODEL_PURPOSES, type ProviderModelPurpose } from '../utils/providerModelPurpose';

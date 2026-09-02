@@ -1,5 +1,5 @@
 import RadioIcon from '@cherrystudio/app-icons/icons/radio';
-import { Section, Switch, useAlert } from '@cherrystudio/ui/components';
+import { Section, Switch, useAlert } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 import { usePreference } from '@/frontend/data/hooks';

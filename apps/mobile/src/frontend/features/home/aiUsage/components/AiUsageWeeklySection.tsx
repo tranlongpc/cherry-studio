@@ -1,4 +1,4 @@
-import { Button, Section } from '@cherrystudio/ui/components';
+import { Button, Section } from '@cherrystudio/ui-native/components';
 import {
   LegendList,
   type LegendListRef,

@@ -1,7 +1,7 @@
 import {
   Composer,
   type ComposerDockProps as CherryComposerDockProps,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 
 import { useComposerPresentationState } from '../context/ComposerProvider';
 

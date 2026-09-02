@@ -1,4 +1,4 @@
-import { Image, Section } from '@cherrystudio/ui/components';
+import { Image, Section } from '@cherrystudio/ui-native/components';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';

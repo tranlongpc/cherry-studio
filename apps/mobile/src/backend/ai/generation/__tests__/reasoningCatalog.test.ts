@@ -8,8 +8,8 @@ import {
   REASONING_FORMAT_PROFILES,
   REASONING_WIRE_TARGETS,
   type ReasoningWireProfile,
-} from '@cherrystudio/provider-registry';
-import { MobileRegistryLoader } from '@cherrystudio/provider-registry/mobile';
+} from '@cherrystudio/mobile-provider-registry';
+import { MobileRegistryLoader } from '@cherrystudio/mobile-provider-registry/mobile';
 import type { ReasoningEffortOption } from '@cherrystudio/universal/types/aiSdk';
 
 import {

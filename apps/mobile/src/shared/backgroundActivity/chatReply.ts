@@ -1,4 +1,4 @@
-import type { BackgroundActivityPresentation } from '@cherrystudio/ui/background-activity';
+import type { BackgroundActivityPresentation } from '@cherrystudio/ui-native/background-activity';
 
 /**
  * Chat background-reply activity contract. Shared because the widget layout

@@ -1,4 +1,4 @@
-import { useAlert, useToast } from '@cherrystudio/ui/components';
+import { useAlert, useToast } from '@cherrystudio/ui-native/components';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';

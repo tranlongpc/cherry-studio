@@ -1,6 +1,6 @@
 import ChevronDownIcon from '@cherrystudio/app-icons/icons/chevron-down';
 import EllipsisIcon from '@cherrystudio/app-icons/icons/ellipsis';
-import { resolveIcon, resolveProviderIcon } from '@cherrystudio/ui/icons';
+import { resolveIcon, resolveProviderIcon } from '@cherrystudio/ui-native/icons';
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { type ReactElement, type ReactNode, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';

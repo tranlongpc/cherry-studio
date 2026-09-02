@@ -4,7 +4,7 @@ import {
   type ButtonProps,
   type ButtonSize,
   type ButtonVariant,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { fn } from 'storybook/test';

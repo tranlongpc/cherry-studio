@@ -1,4 +1,7 @@
-import { ContextMenuScrollBoundary, ScrollToBottomButton } from '@cherrystudio/ui/components';
+import {
+  ContextMenuScrollBoundary,
+  ScrollToBottomButton,
+} from '@cherrystudio/ui-native/components';
 import { KeyboardAwareLegendList, useKeyboardScrollToEnd } from '@legendapp/list/keyboard';
 import { type LegendListRef, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';

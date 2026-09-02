@@ -1,4 +1,4 @@
-import { BottomSheet, Button } from '@cherrystudio/ui/components';
+import { BottomSheet, Button } from '@cherrystudio/ui-native/components';
 import type { ReactNode } from 'react';
 import { ScrollView, Text } from 'react-native';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
@@ -14,7 +14,7 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const { Text: MockText, View: MockView } = jest.requireActual('react-native');
 
   function MockButton({ children, ...props }: { children?: ReactNode }) {

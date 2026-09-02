@@ -2,7 +2,7 @@ import ArrowLeftRightIcon from '@cherrystudio/app-icons/icons/arrow-left-right';
 import BotIcon from '@cherrystudio/app-icons/icons/bot';
 import ChevronDownIcon from '@cherrystudio/app-icons/icons/chevron-down';
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
-import { ContentState } from '@cherrystudio/ui/components';
+import { ContentState } from '@cherrystudio/ui-native/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';

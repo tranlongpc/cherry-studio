@@ -1,4 +1,4 @@
-import { MessagePart } from '@cherrystudio/ui/components';
+import { MessagePart } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 import type { AgentFailureReason } from '@/shared/contracts/agent';

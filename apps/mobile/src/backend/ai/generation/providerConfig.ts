@@ -1,13 +1,8 @@
 /**
- * `Provider + Model` -> `ProviderConfig` for `@cherrystudio/ai-core`.
+ * `Provider + Model` -> `ProviderConfig` for `@cherrystudio/mobile-ai-core`.
  * Always async because serving credential selection is async.
  */
 
-import {
-  formatPrivateKey,
-  hasProviderConfig,
-  type StringKeys,
-} from '@cherrystudio/ai-core/provider';
 import {
   type AppProviderId,
   type AppProviderSettingsMap,
@@ -29,8 +24,13 @@ import {
   transformZhipuRequestBody,
   withoutTrailingApiVersion,
 } from '@cherrystudio/ai-runtime/provider';
-import type { CherryInProviderSettings } from '@cherrystudio/ai-sdk-provider';
-import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import {
+  formatPrivateKey,
+  hasProviderConfig,
+  type StringKeys,
+} from '@cherrystudio/mobile-ai-core/provider';
+import type { CherryInProviderSettings } from '@cherrystudio/mobile-ai-sdk-provider';
+import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 
 import {
   resolveProviderConnection,

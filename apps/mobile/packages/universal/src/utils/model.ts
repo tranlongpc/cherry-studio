@@ -1,4 +1,8 @@
-import { MODALITY, MODEL_CAPABILITY, VENDOR_PATTERNS } from '@cherrystudio/provider-registry';
+import {
+  MODALITY,
+  MODEL_CAPABILITY,
+  VENDOR_PATTERNS,
+} from '@cherrystudio/mobile-provider-registry';
 import type { Model } from '@shared/data/types/model';
 import { parseUniqueModelId } from '@shared/data/types/model';
 

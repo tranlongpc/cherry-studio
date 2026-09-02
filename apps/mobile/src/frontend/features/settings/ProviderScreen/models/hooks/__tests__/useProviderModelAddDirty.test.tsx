@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import type { Provider } from '@/shared/data/types/provider';
@@ -11,7 +11,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useAlert: () => ({ alert: { show: jest.fn() } }),
   useToast: () => ({ toast: { show: jest.fn() } }),
 }));

@@ -1,4 +1,4 @@
-import { Section } from '@cherrystudio/ui/components';
+import { Section } from '@cherrystudio/ui-native/components';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

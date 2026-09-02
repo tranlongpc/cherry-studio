@@ -1,4 +1,4 @@
-import { BottomSheet, SearchField } from '@cherrystudio/ui/components';
+import { BottomSheet, SearchField } from '@cherrystudio/ui-native/components';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

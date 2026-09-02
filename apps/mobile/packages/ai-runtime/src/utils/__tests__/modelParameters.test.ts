@@ -1,4 +1,4 @@
-import { MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 import type { Assistant } from '@cherrystudio/universal/data/types/assistant';
 import { DEFAULT_ASSISTANT_SETTINGS } from '@cherrystudio/universal/data/types/assistant';
 import { createUniqueModelId, type Model } from '@cherrystudio/universal/data/types/model';

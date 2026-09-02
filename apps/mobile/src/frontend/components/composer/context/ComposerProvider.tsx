@@ -1,4 +1,4 @@
-import type { ComposerInputHandle } from '@cherrystudio/ui/components';
+import type { ComposerInputHandle } from '@cherrystudio/ui-native/components';
 import {
   createContext,
   type PropsWithChildren,

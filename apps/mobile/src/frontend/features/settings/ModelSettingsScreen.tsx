@@ -1,5 +1,5 @@
 import ChevronDownIcon from '@cherrystudio/app-icons/icons/chevron-down';
-import { Section, useAlert, useToast } from '@cherrystudio/ui/components';
+import { Section, useAlert, useToast } from '@cherrystudio/ui-native/components';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';

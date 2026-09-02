@@ -1,4 +1,4 @@
-import { extensionRegistry } from '@cherrystudio/ai-core/provider';
+import { extensionRegistry } from '@cherrystudio/mobile-ai-core/provider';
 import { ENDPOINT_TYPE, type Model } from '@cherrystudio/universal/data/types/model';
 import type { Provider } from '@cherrystudio/universal/data/types/provider';
 

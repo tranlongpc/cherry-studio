@@ -1,4 +1,4 @@
-import { REASONING_EFFORT } from '@cherrystudio/provider-registry';
+import { REASONING_EFFORT } from '@cherrystudio/mobile-provider-registry';
 
 import type { Model, UniqueModelId } from '@/shared/data/types/model';
 

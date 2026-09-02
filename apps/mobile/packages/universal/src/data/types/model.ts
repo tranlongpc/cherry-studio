@@ -21,7 +21,7 @@ import type {
   ModelCapability,
   ReasoningEffort,
   SupportSpec,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import {
   CANONICAL_PARAM_KEY,
   CURRENCY,
@@ -34,7 +34,7 @@ import {
   objectValues,
   REASONING_EFFORT,
   ReasoningControlSchema,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import * as z from 'zod';
 
 // Re-export const objects for consumers

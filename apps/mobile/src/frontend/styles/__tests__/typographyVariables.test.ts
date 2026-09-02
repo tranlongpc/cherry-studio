@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { createTypographyCSSVariables } from '@cherrystudio/ui/utils';
+import { createTypographyCSSVariables } from '@cherrystudio/ui-native/utils';
 
 jest.mock('heroui-native/utils', () => ({
   cn: (...values: unknown[]) => values.filter(Boolean).join(' '),

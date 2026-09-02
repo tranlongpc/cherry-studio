@@ -1,7 +1,7 @@
 import BotIcon from '@cherrystudio/app-icons/icons/bot';
 import CheckIcon from '@cherrystudio/app-icons/icons/check';
 import MessageCircleMoreIcon from '@cherrystudio/app-icons/icons/message-circle-more';
-import { ContentState, ContextMenuScrollBoundary } from '@cherrystudio/ui/components';
+import { ContentState, ContextMenuScrollBoundary } from '@cherrystudio/ui-native/components';
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

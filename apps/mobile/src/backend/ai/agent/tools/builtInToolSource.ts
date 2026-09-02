@@ -15,7 +15,7 @@
  * user just revoked.
  */
 
-import { MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 import { Platform } from 'react-native';
 
 import { modelService } from '@/backend/data/services/ModelService';

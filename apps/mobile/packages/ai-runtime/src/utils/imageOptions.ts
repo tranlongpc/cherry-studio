@@ -1,4 +1,4 @@
-import type { CanonicalParamKey, ParamValues } from '@cherrystudio/provider-registry';
+import type { CanonicalParamKey, ParamValues } from '@cherrystudio/mobile-provider-registry';
 
 type NativeBinding = {
   map?: (value: unknown) => unknown;

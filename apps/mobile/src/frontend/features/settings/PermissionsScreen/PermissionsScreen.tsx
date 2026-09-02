@@ -1,6 +1,6 @@
 import CheckIcon from '@cherrystudio/app-icons/icons/check';
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
-import { Section, Spinner, useAlert } from '@cherrystudio/ui/components';
+import { Section, Spinner, useAlert } from '@cherrystudio/ui-native/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';

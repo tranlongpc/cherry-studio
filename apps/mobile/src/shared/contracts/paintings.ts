@@ -1,4 +1,4 @@
-import type { ImageGenerationMode, ParamValues } from '@cherrystudio/provider-registry';
+import type { ImageGenerationMode, ParamValues } from '@cherrystudio/mobile-provider-registry';
 
 import type { FileEntryId } from '@/shared/data/types/file';
 import type { UniqueModelId } from '@/shared/data/types/model';

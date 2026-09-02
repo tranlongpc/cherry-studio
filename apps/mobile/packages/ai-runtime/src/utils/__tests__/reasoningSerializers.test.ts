@@ -1,4 +1,4 @@
-import type { ReasoningWireProfile } from '@cherrystudio/provider-registry';
+import type { ReasoningWireProfile } from '@cherrystudio/mobile-provider-registry';
 import { createUniqueModelId, type Model } from '@cherrystudio/universal/data/types/model';
 
 import { encodeReasoningInvocation, resolveReasoningInvocation } from '../reasoningSerializers';

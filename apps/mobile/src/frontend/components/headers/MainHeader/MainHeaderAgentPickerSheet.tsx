@@ -1,7 +1,7 @@
 import CheckIcon from '@cherrystudio/app-icons/icons/check';
 import InfoIcon from '@cherrystudio/app-icons/icons/info';
 import PlusIcon from '@cherrystudio/app-icons/icons/plus';
-import { BottomSheet, Button, ContentState } from '@cherrystudio/ui/components';
+import { BottomSheet, Button, ContentState } from '@cherrystudio/ui-native/components';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';

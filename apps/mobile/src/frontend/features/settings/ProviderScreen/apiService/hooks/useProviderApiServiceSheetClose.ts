@@ -1,4 +1,4 @@
-import { useAlert } from '@cherrystudio/ui/components';
+import { useAlert } from '@cherrystudio/ui-native/components';
 import { useNavigation } from 'expo-router';
 import type { NavigationAction } from 'expo-router/react-navigation';
 import { useCallback, useEffect, useRef } from 'react';

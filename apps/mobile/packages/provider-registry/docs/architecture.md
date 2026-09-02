@@ -112,4 +112,4 @@ Source **correctness** (as opposed to "the JSON matches the source") is covered 
 
 ## Runtime side
 
-The app does **not** import the generation pipeline. It reads the JSON via `src/registry-loader.ts` (the `@cherrystudio/provider-registry/node` entry) + the `src/schemas/*` types, and resolves a model with `normalizeModelId`. `registry-loader` / `patterns` / `schemas` are the published surface; `creators` / `provider` / `scripts` are build-time only (not in `dist`).
+The app does **not** import the generation pipeline. It reads the JSON via `src/registry-loader.ts` (the `@cherrystudio/mobile-provider-registry/node` entry) + the `src/schemas/*` types, and resolves a model with `normalizeModelId`. `registry-loader` / `patterns` / `schemas` are the published surface; `creators` / `provider` / `scripts` are build-time only (not in `dist`).

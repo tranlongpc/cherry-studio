@@ -1,5 +1,5 @@
-import { Composer } from '@cherrystudio/ui/components';
-import { duration, easing } from '@cherrystudio/ui/motion';
+import { Composer } from '@cherrystudio/ui-native/components';
+import { duration, easing } from '@cherrystudio/ui-native/motion';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type LayoutChangeEvent, View } from 'react-native';

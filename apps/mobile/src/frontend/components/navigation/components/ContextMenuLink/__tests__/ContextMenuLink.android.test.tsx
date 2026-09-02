@@ -14,7 +14,7 @@ type AccessibilityProps = {
   onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
 };
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const React = jest.requireActual('react');
 
   return {

@@ -1,5 +1,5 @@
-import type { ImageGenerationMode, ParamValues } from '@cherrystudio/provider-registry';
-import type { BackgroundActivityIcon } from '@cherrystudio/ui/background-activity';
+import type { ImageGenerationMode, ParamValues } from '@cherrystudio/mobile-provider-registry';
+import type { BackgroundActivityIcon } from '@cherrystudio/ui-native/background-activity';
 import { loggerService } from '@logger';
 
 import type {

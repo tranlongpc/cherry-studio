@@ -1,7 +1,7 @@
 // The app's input surface, shared by chat and painting. Assembled by the
 // caller: `ComposerSurface` is the root and owns the send protocol, everything
 // else is a part to arrange inside it, alongside the presentational
-// `Composer.*` parts from `@cherrystudio/ui`.
+// `Composer.*` parts from `@cherrystudio/ui-native`.
 //
 // `utils/composerAttachments` is deliberately left deep-importable so logic-only
 // consumers and its node-env tests do not have to load this barrel and,

@@ -121,7 +121,7 @@ const tombstonePatterns = [
 const retiredImports = [
   {
     name: 'heroui-native/toast',
-    message: 'Use Toast and useToast from @cherrystudio/ui/components.',
+    message: 'Use Toast and useToast from @cherrystudio/ui-native/components.',
   },
   {
     name: '@/frontend/data',

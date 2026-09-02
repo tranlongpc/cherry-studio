@@ -50,10 +50,10 @@ function sharedPackageFiles(platform: 'desktop' | 'mobile') {
   const aiCoreDirectory = platform === 'desktop' ? 'packages/aiCore' : 'packages/ai-core';
 
   return {
-    [`${aiCoreDirectory}/package.json`]: `${JSON.stringify({ name: '@cherrystudio/ai-core' }, null, 2)}\n`,
-    'packages/ai-sdk-provider/package.json': `${JSON.stringify({ name: '@cherrystudio/ai-sdk-provider' }, null, 2)}\n`,
-    'packages/provider-registry/package.json': `${JSON.stringify({ name: '@cherrystudio/provider-registry' }, null, 2)}\n`,
-    'packages/ui/package.json': `${JSON.stringify({ name: '@cherrystudio/ui' }, null, 2)}\n`,
+    [`${aiCoreDirectory}/package.json`]: `${JSON.stringify({ name: '@cherrystudio/mobile-ai-core' }, null, 2)}\n`,
+    'packages/ai-sdk-provider/package.json': `${JSON.stringify({ name: '@cherrystudio/mobile-ai-sdk-provider' }, null, 2)}\n`,
+    'packages/provider-registry/package.json': `${JSON.stringify({ name: '@cherrystudio/mobile-provider-registry' }, null, 2)}\n`,
+    'packages/ui/package.json': `${JSON.stringify({ name: '@cherrystudio/ui-native' }, null, 2)}\n`,
   };
 }
 

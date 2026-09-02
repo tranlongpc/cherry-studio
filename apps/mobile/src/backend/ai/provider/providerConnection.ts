@@ -4,7 +4,7 @@ import {
   resolveWireModelId,
   type ResolvedEndpoint,
 } from '@cherrystudio/ai-runtime/provider';
-import type { EndpointType } from '@cherrystudio/provider-registry';
+import type { EndpointType } from '@cherrystudio/mobile-provider-registry';
 
 import { defaultAppHeaders } from '@/backend/utils/defaultAppHeaders';
 import type { Model } from '@/shared/data/types/model';

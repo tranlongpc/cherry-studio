@@ -6,7 +6,7 @@ import type {
   LanguageModelV3StreamResult,
   LanguageModelV3Usage,
 } from '@ai-sdk/provider';
-import { ProviderExtension, extensionRegistry } from '@cherrystudio/ai-core/provider';
+import { ProviderExtension, extensionRegistry } from '@cherrystudio/mobile-ai-core/provider';
 import { simulateReadableStream } from 'ai';
 import { MockProviderV3, mockValues } from 'ai/test';
 

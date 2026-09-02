@@ -1,4 +1,4 @@
-import { easing } from '@cherrystudio/ui/motion';
+import { easing } from '@cherrystudio/ui-native/motion';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';

@@ -1,4 +1,4 @@
-import { Input, TextField } from '@cherrystudio/ui/components';
+import { Input, TextField } from '@cherrystudio/ui-native/components';
 import { useCallback, useState } from 'react';
 
 type SettingNumberInputProps = {

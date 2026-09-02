@@ -1,5 +1,5 @@
 import PlusIcon from '@cherrystudio/app-icons/icons/plus';
-import { Section, Spinner, useAlert, useToast } from '@cherrystudio/ui/components';
+import { Section, Spinner, useAlert, useToast } from '@cherrystudio/ui-native/components';
 import { SectionList } from '@legendapp/list/section-list';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';

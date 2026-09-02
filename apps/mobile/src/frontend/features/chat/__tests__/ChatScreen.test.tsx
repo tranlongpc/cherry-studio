@@ -16,7 +16,7 @@ let mockSessionError: Error | undefined;
 let mockSessionIsLoading: boolean;
 const mockSessionRefetch = jest.fn();
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   composerContentGap: 8,
   ContentState: {
     Error: () => null,

@@ -1,5 +1,5 @@
 import '../src/frontend/styles/global.css';
-import { Toast } from '@cherrystudio/ui/components';
+import { Toast } from '@cherrystudio/ui-native/components';
 import type { Preview } from '@storybook/react-native';
 import { BottomSheetProvider } from '@swmansion/react-native-bottom-sheet';
 import { HeroUINativeProvider } from 'heroui-native/provider';

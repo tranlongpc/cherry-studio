@@ -1,7 +1,4 @@
 import type { ProviderOptions } from '@ai-sdk/provider-utils';
-import type { AiPlugin } from '@cherrystudio/ai-core';
-import { createAgent } from '@cherrystudio/ai-core';
-import type { StringKeys } from '@cherrystudio/ai-core/provider';
 import type { AppProviderSettingsMap } from '@cherrystudio/ai-runtime/provider';
 import {
   type AgentLoopHooks,
@@ -13,6 +10,9 @@ import {
   wrapToolsWithExecutionHooks,
 } from '@cherrystudio/ai-runtime/runtime';
 import type { RequestContext } from '@cherrystudio/ai-runtime/tools';
+import type { AiPlugin } from '@cherrystudio/mobile-ai-core';
+import { createAgent } from '@cherrystudio/mobile-ai-core';
+import type { StringKeys } from '@cherrystudio/mobile-ai-core/provider';
 import type {
   LanguageModelUsage,
   ModelMessage,

@@ -1,4 +1,4 @@
-import { Composer } from '@cherrystudio/ui/components';
+import { Composer } from '@cherrystudio/ui-native/components';
 import { type PropsWithChildren, type ReactNode, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text } from 'react-native';

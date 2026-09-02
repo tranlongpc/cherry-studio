@@ -1,6 +1,6 @@
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
-import { Image, Section, Switch, type SwitchProps } from '@cherrystudio/ui/components';
-import { cn } from '@cherrystudio/ui/utils';
+import { Image, Section, Switch, type SwitchProps } from '@cherrystudio/ui-native/components';
+import { cn } from '@cherrystudio/ui-native/utils';
 import type { ImageSource } from 'expo-image';
 import { memo, type ReactNode, useState } from 'react';
 import type { AccessibilityProps } from 'react-native';

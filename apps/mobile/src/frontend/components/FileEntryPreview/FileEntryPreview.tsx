@@ -1,4 +1,8 @@
-import { FilePreview, type FilePreviewOperation, useAlert } from '@cherrystudio/ui/components';
+import {
+  FilePreview,
+  type FilePreviewOperation,
+  useAlert,
+} from '@cherrystudio/ui-native/components';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 

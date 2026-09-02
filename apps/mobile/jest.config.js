@@ -41,9 +41,10 @@ module.exports = {
       '<rootDir>/node_modules/@earendil-works/pi-agent-core/dist/harness/compaction/compaction.js',
     '^@earendil-works/pi-ai/utils/(.*)$':
       '<rootDir>/node_modules/@earendil-works/pi-ai/dist/utils/$1.js',
-    '^@cherrystudio/ui/background-activity/ios$':
+    '^@cherrystudio/ui-native/background-activity/ios$':
       '<rootDir>/packages/ui/src/background-activity/background-activity.ios.tsx',
-    '^@cherrystudio/ui/icons/providers$': '<rootDir>/packages/ui/src/icons-webp/providers/index.ts',
+    '^@cherrystudio/ui-native/icons/providers$':
+      '<rootDir>/packages/ui/src/icons-webp/providers/index.ts',
     '^vitest$': '<rootDir>/packages/provider-registry/vitestJestShim.ts',
     '^@cherrystudio/universal/(.*)$': '<rootDir>/packages/universal/src/$1',
     '^@cherrystudio/ai-runtime/(.*)$': '<rootDir>/packages/ai-runtime/src/$1/index.ts',

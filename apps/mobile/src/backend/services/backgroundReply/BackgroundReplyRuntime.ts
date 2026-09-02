@@ -1,4 +1,4 @@
-import type { BackgroundActivityIcon } from '@cherrystudio/ui/background-activity';
+import type { BackgroundActivityIcon } from '@cherrystudio/ui-native/background-activity';
 import { Platform } from 'react-native';
 
 import {

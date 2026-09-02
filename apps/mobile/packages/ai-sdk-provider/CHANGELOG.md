@@ -1,4 +1,4 @@
-# @cherrystudio/ai-sdk-provider
+# @cherrystudio/mobile-ai-sdk-provider
 
 ## 0.1.6
 

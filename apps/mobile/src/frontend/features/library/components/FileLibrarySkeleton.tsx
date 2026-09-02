@@ -1,4 +1,4 @@
-import { Skeleton } from '@cherrystudio/ui/components';
+import { Skeleton } from '@cherrystudio/ui-native/components';
 import { StyleSheet, View } from 'react-native';
 
 import { FileEntrySkeleton } from '@/frontend/components/FileEntryPreview';

@@ -18,7 +18,7 @@ jest.mock('@cherrystudio/app-icons/icons/check', () => () => null);
 jest.mock('@cherrystudio/app-icons/icons/copy', () => () => null);
 jest.mock('@cherrystudio/app-icons/icons/ellipsis', () => () => null);
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const { createElement } = jest.requireActual('react');
   return {
     ActionMenu: ({ children, ...props }: { children: unknown }) =>

@@ -6,7 +6,7 @@ import {
   ContextMenuScrollBoundary,
   type MenuItem,
   useAlert,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

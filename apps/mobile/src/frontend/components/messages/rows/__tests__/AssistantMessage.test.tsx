@@ -16,7 +16,7 @@ jest.mock('../../parts/MessageParts', () => ({
     mockMessageParts(props),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   MessagePart: {
     Pending: (props: { accessibilityLabel: string }) => mockMessagePartPending(props),
   },

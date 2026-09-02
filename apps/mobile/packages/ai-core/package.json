@@ -1,5 +1,5 @@
 {
-  "name": "@cherrystudio/ai-core",
+  "name": "@cherrystudio/mobile-ai-core",
   "version": "2.0.1",
   "description": "Cherry Studio AI Core - Unified AI Provider Interface Based on Vercel AI SDK",
   "main": "dist/index.cjs",
@@ -49,13 +49,13 @@
     "@ai-sdk/provider": "^3.0.14",
     "@ai-sdk/provider-utils": "^4.0.40",
     "@ai-sdk/xai": "^3.0.111",
-    "@cherrystudio/ai-sdk-provider": "workspace:*",
+    "@cherrystudio/mobile-ai-sdk-provider": "workspace:*",
     "@openrouter/ai-sdk-provider": "^2.10.0",
     "quick-lru": "^5.1.1",
     "zod": "^4.1.5"
   },
   "devDependencies": {
-    "@cherrystudio/ai-sdk-provider": "workspace:*",
+    "@cherrystudio/mobile-ai-sdk-provider": "workspace:*",
     "oxlint": "^1.36.0",
     "tsdown": "^0.20.3",
     "typescript": "^5.0.0",

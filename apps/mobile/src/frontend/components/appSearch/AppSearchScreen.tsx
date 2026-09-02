@@ -1,4 +1,4 @@
-import { ContentState, SearchField, Spinner } from '@cherrystudio/ui/components';
+import { ContentState, SearchField, Spinner } from '@cherrystudio/ui-native/components';
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

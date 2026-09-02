@@ -1,4 +1,4 @@
-import { Input } from '@cherrystudio/ui/components';
+import { Input } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 import type { EndpointType } from '@/shared/data/types/model';

@@ -1,6 +1,6 @@
 import type { LanguageModelV3StreamPart, LanguageModelV3Usage } from '@ai-sdk/provider';
-import { type AiPlugin, definePlugin } from '@cherrystudio/ai-core';
 import { extractProviderCostWithCurrency } from '@cherrystudio/ai-runtime/utils';
+import { type AiPlugin, definePlugin } from '@cherrystudio/mobile-ai-core';
 import type { LanguageModelMiddleware } from 'ai';
 import * as Crypto from 'expo-crypto';
 

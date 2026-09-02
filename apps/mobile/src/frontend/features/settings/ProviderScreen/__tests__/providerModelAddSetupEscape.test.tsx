@@ -24,7 +24,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const {
     Text: MockText,
     TextInput: MockTextInput,
@@ -58,7 +58,9 @@ jest.mock('@cherrystudio/ui/components', () => {
   };
 });
 
-jest.mock('@cherrystudio/ui/utils', () => ({ cn: (...names: unknown[]) => names.join(' ') }));
+jest.mock('@cherrystudio/ui-native/utils', () => ({
+  cn: (...names: unknown[]) => names.join(' '),
+}));
 
 jest.mock('@cherrystudio/app-icons/icons/chevron-down', () => {
   const { View: MockView } = jest.requireActual('react-native');

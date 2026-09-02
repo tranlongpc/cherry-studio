@@ -8,7 +8,7 @@ jest.mock('@/frontend/utils/openExternalUrl', () => ({
   openExternalUrl: (url: string) => mockOpenExternalUrl(url),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const { createElement } = jest.requireActual('react');
 
   return {

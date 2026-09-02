@@ -1,5 +1,5 @@
 import ChevronDownIcon from '@cherrystudio/app-icons/icons/chevron-down';
-import { Section } from '@cherrystudio/ui/components';
+import { Section } from '@cherrystudio/ui-native/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';

@@ -2,7 +2,7 @@ import {
   objectValues,
   REASONING_EFFORT,
   type ReasoningEffort,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import * as z from 'zod';
 
 export type ReasoningEffortOption = ReasoningEffort | 'default';

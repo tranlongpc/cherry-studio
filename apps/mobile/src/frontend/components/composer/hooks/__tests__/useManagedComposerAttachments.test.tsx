@@ -25,7 +25,7 @@ jest.mock('@/frontend/data', () => ({
   useBackendModule: () => mockFileModule,
 }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useAlert: () => ({ alert: { show: mockAlertShow } }),
 }));
 

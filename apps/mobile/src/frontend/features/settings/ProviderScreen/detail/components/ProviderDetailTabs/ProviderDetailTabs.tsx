@@ -1,4 +1,4 @@
-import { Tabs } from '@cherrystudio/ui/components';
+import { Tabs } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 import { type ProviderDetailTabsProps, providerDetailTabs } from './types';

@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 
 import type { AiServiceDependencies } from '@/backend/ai/AiService';
 import type { Model } from '@/shared/data/types/model';

@@ -1,5 +1,5 @@
-import { extensionRegistry } from '@cherrystudio/ai-core/provider';
 import { getAiSdkProviderId } from '@cherrystudio/ai-runtime/provider';
+import { extensionRegistry } from '@cherrystudio/mobile-ai-core/provider';
 
 import type { Model } from '@/shared/data/types/model';
 import type { Provider } from '@/shared/data/types/provider';

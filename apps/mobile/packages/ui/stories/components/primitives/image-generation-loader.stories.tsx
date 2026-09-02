@@ -1,7 +1,7 @@
 import {
   ImageGenerationLoader,
   type ImageGenerationLoaderProps,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { ScopedTheme } from 'uniwind';

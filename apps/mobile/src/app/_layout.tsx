@@ -2,7 +2,7 @@ import '../frontend/styles/global.css';
 import '@/bootstrap/preboot/abortSignal';
 import '@/bootstrap/preboot/blob';
 import '@/bootstrap/preboot/webCrypto';
-import { Alert, BottomSheetProvider, Toast } from '@cherrystudio/ui/components';
+import { Alert, BottomSheetProvider, Toast } from '@cherrystudio/ui-native/components';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { HeroUINativeProvider } from 'heroui-native/provider';

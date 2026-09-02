@@ -1,4 +1,4 @@
-import { CHERRY_ACTIVITY_LOGO_BASE64 } from '@cherrystudio/ui/background-activity';
+import { CHERRY_ACTIVITY_LOGO_BASE64 } from '@cherrystudio/ui-native/background-activity';
 
 import { BackgroundActivityEnvironment } from '../BackgroundActivityEnvironment';
 

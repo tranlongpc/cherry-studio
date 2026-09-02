@@ -3,11 +3,11 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { HeaderActionGroup } from '../HeaderActionGroup.android';
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   Menu: ({ children }: { children: ReactElement }) => children,
 }));
 
-jest.mock('@cherrystudio/ui/utils', () => ({
+jest.mock('@cherrystudio/ui-native/utils', () => ({
   cn: (...values: (false | null | string | undefined)[]) => values.filter(Boolean).join(' '),
 }));
 

@@ -29,7 +29,7 @@ import type {
 } from '@ai-sdk/provider';
 import type { FetchFunction } from '@ai-sdk/provider-utils';
 import { loadApiKey, withoutTrailingSlash } from '@ai-sdk/provider-utils';
-import { OpenAICompatibleRerankingModel } from '@cherrystudio/ai-sdk-provider';
+import { OpenAICompatibleRerankingModel } from '@cherrystudio/mobile-ai-sdk-provider';
 
 export const NEWAPI_PROVIDER_NAME = 'newapi' as const;
 

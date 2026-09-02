@@ -3,7 +3,7 @@ import {
   type ToastShowOptions,
   type ToastVariant,
   useToast,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { View } from 'react-native';
 

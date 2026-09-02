@@ -1,4 +1,4 @@
-import type { BackgroundActivityBasePresentation } from '@cherrystudio/ui/background-activity';
+import type { BackgroundActivityBasePresentation } from '@cherrystudio/ui-native/background-activity';
 
 /** Platform-neutral contracts for background activity surfaces. */
 

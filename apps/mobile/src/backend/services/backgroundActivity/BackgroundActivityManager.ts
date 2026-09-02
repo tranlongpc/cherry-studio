@@ -1,4 +1,4 @@
-import type { BackgroundActivityNativePresentation } from '@cherrystudio/ui/background-activity';
+import type { BackgroundActivityNativePresentation } from '@cherrystudio/ui-native/background-activity';
 import { AppState, type AppStateStatus, Platform } from 'react-native';
 
 import {

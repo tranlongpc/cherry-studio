@@ -1,4 +1,4 @@
-import { definePlugin } from '@cherrystudio/ai-core';
+import { definePlugin } from '@cherrystudio/mobile-ai-core';
 import type { LanguageModelMiddleware } from 'ai';
 
 function createNoThinkMiddleware(): LanguageModelMiddleware {

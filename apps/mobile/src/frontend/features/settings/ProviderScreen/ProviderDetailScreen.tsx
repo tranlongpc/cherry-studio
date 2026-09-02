@@ -1,5 +1,5 @@
 import PlusIcon from '@cherrystudio/app-icons/icons/plus';
-import { Button, Spinner, useAlert, useToast } from '@cherrystudio/ui/components';
+import { Button, Spinner, useAlert, useToast } from '@cherrystudio/ui-native/components';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';

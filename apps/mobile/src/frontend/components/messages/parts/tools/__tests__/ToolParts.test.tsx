@@ -31,7 +31,7 @@ jest.mock('@/frontend/components/markdown', () => {
   };
 });
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const React = jest.requireActual('react');
   const { Text: MockText, View: MockView } = jest.requireActual('react-native');
   const isValueRecord = (value: unknown): value is Record<string, unknown> =>

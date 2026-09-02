@@ -62,7 +62,7 @@ Consequently, there is no supported Expo UI equivalent of a provider that coordi
 
 The application does not use Expo UI for its shared sheet frame. Its root installs
 `BottomSheetProvider` from `@swmansion/react-native-bottom-sheet`, and the package-owned
-`@cherrystudio/ui/components` `BottomSheet` wraps that library's `ModalBottomSheet`.[^root-layout]
+`@cherrystudio/ui-native/components` `BottomSheet` wraps that library's `ModalBottomSheet`.[^root-layout]
 [^package-sheet]
 
 The shared component exposes controlled visibility, dismissal, title, children, an optional

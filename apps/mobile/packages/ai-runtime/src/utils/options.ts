@@ -1,5 +1,5 @@
 import type { ProviderOptions } from '@ai-sdk/provider-utils';
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import type { Assistant } from '@cherrystudio/universal/data/types/assistant';
 import type { EndpointType, Model } from '@cherrystudio/universal/data/types/model';
 import type {

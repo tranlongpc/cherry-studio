@@ -1,5 +1,5 @@
 import type { ProviderOptions } from '@ai-sdk/provider-utils';
-import { type CanonicalParamKey, wireName } from '@cherrystudio/provider-registry';
+import { type CanonicalParamKey, wireName } from '@cherrystudio/mobile-provider-registry';
 import type { Provider } from '@cherrystudio/universal/data/types/provider';
 import type { JSONValue } from 'ai';
 

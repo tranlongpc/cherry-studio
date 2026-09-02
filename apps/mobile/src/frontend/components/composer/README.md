@@ -5,14 +5,14 @@ menu that fills them, the model pill, and the send/stop button. Chat and
 painting both mount it, which is why it lives here rather than inside either.
 
 It is the *business* composer, built on top of the presentational `Composer` in
-`@cherrystudio/ui`. The package knows nothing about attachments, models, or
+`@cherrystudio/ui-native`. The package knows nothing about attachments, models, or
 sending; this module is where those live.
 
 ## Assembled by the caller
 
 There is no all-in-one component. `ComposerSurface` is the root, and the parts
 go inside it in whatever order the screen wants — ours alongside the
-presentational ones from `@cherrystudio/ui`. Naming tells them apart:
+presentational ones from `@cherrystudio/ui-native`. Naming tells them apart:
 `Composer.Thing` is the package's, `ComposerThing` is ours.
 
 ```tsx

@@ -1,4 +1,4 @@
-import { ContextMenu } from '@cherrystudio/ui/components';
+import { ContextMenu } from '@cherrystudio/ui-native/components';
 import { Link } from 'expo-router';
 import { cloneElement, type ReactElement } from 'react';
 import type { AccessibilityActionEvent, AccessibilityActionInfo } from 'react-native';

@@ -1,4 +1,4 @@
-import { Image } from '@cherrystudio/ui/components';
+import { Image } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text } from 'react-native';
 

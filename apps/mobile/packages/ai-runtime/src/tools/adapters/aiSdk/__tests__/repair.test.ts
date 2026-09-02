@@ -1,10 +1,10 @@
 import type { LanguageModelV3ToolCall } from '@ai-sdk/provider';
-import { generateText } from '@cherrystudio/ai-core';
+import { generateText } from '@cherrystudio/mobile-ai-core';
 import { InvalidToolInputError, NoSuchToolError } from 'ai';
 
 import { createAiRepair } from '../repair';
 
-vi.mock('@cherrystudio/ai-core', () => ({ generateText: vi.fn() }));
+vi.mock('@cherrystudio/mobile-ai-core', () => ({ generateText: vi.fn() }));
 const mockGenerateText = vi.mocked(generateText);
 
 const repair = createAiRepair({

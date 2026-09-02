@@ -1,4 +1,4 @@
-import { formatMessagePartValue, MessagePart } from '@cherrystudio/ui/components';
+import { formatMessagePartValue, MessagePart } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 import { isRecord, type ToolMessagePart } from '../toolPartState';

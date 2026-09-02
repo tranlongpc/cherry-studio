@@ -5,7 +5,7 @@
  * Ported from desktop's `src/main/ai/runtime/aiSdk/params/features/simulateStreaming.ts`.
  */
 
-import { definePlugin } from '@cherrystudio/ai-core';
+import { definePlugin } from '@cherrystudio/mobile-ai-core';
 import { simulateStreamingMiddleware } from 'ai';
 
 export function createSimulateStreamingPlugin() {

@@ -1,4 +1,4 @@
-import { wireName } from '@cherrystudio/provider-registry';
+import { wireName } from '@cherrystudio/mobile-provider-registry';
 import type { JSONValue } from 'ai';
 
 import type { WireProfile, WireRegistration } from './wireProfile';

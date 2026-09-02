@@ -1,4 +1,4 @@
-import { MarkdownText, MessagePart } from '@cherrystudio/ui/components';
+import { MarkdownText, MessagePart } from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { fn } from 'storybook/test';
 

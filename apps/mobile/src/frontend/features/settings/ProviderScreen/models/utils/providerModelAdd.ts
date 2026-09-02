@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE, MODALITY, MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE, MODALITY, MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 
 import type { CreateModelDto } from '@/shared/data/api/schemas/models';
 import {

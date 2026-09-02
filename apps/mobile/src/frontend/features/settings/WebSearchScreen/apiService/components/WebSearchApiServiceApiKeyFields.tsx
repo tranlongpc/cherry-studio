@@ -4,7 +4,7 @@ import {
   Input,
   type InputPasswordVisibilityAccessibilityLabels,
   TextField,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TextInputEndEditingEvent } from 'react-native';

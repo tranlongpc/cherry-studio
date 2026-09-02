@@ -8,7 +8,7 @@
  * `src/main/ai/runtime/aiSdk/params/features/reasoningExtraction.ts`.
  */
 
-import { definePlugin } from '@cherrystudio/ai-core';
+import { definePlugin } from '@cherrystudio/mobile-ai-core';
 import { extractReasoningMiddleware } from 'ai';
 
 /**

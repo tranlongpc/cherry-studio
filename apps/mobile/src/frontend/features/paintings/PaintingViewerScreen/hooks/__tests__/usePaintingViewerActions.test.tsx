@@ -36,7 +36,7 @@ jest.mock('expo-media-library', () => ({
   requestPermissionsAsync: (...args: unknown[]) => mockRequestPermissions(...args),
 }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useAlert: () => ({ alert: { confirm: mockAlertConfirm, show: mockAlertShow } }),
   useToast: () => ({ toast: { show: mockToastShow } }),
 }));

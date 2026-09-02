@@ -3,7 +3,7 @@ import {
   ContextMenu,
   ContextMenuScrollBoundary,
   type MenuItem,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import type { Meta, StoryObj } from '@storybook/react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { fn } from 'storybook/test';

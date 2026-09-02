@@ -1,7 +1,7 @@
 import BotIcon from '@cherrystudio/app-icons/icons/bot';
 import ImageIcon from '@cherrystudio/app-icons/icons/image';
 import LibraryBigIcon from '@cherrystudio/app-icons/icons/library-big';
-import { ContextMenuScrollBoundary, ScrollShadow } from '@cherrystudio/ui/components';
+import { ContextMenuScrollBoundary, ScrollShadow } from '@cherrystudio/ui-native/components';
 import type { PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';

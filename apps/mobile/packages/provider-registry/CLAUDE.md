@@ -36,8 +36,8 @@ To change the catalog, edit the **source** and regenerate:
 ## Verify (required before commit)
 
 ```bash
-pnpm --filter @cherrystudio/provider-registry generate   # regenerate data/*.json from source + live upstream
-pnpm --filter @cherrystudio/provider-registry test        # vitest: schema conformance + catalog invariants
+pnpm --filter @cherrystudio/mobile-provider-registry generate   # regenerate data/*.json from source + live upstream
+pnpm --filter @cherrystudio/mobile-provider-registry test        # vitest: schema conformance + catalog invariants
 ```
 
 Commit the regenerated `data/*.json` alongside your `src/` change. Generation also re-pulls live upstream, so the data diff may include unrelated metadata/pricing drift since the last run — that's expected. CI enforces sync in **both** directions: the `catalog-hand-edit-check` job rejects a `data/*.json` change with no `src/`/`scripts/` change (a hand-edit), and the `catalog-source-sync` test (in `test:provider-registry`) rejects the reverse — a `src/` change you forgot to regenerate — by re-deriving the source-controlled facts (provider connection config, hand-listed creator models + their `ownedBy`/`name`, provider overrides) and diffing them against the committed JSON. It's deterministic (no upstream fetch), so it only covers source-derived data; upstream-enriched fields (pricing, inferred metadata) and overall correctness still rely on the schema/catalog-invariant tests above and code review.

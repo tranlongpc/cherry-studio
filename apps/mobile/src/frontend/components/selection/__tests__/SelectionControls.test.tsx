@@ -28,7 +28,7 @@ let deletion = deferred<void>();
 let mockDeleteSelected = jest.fn<Promise<void>, [readonly string[]]>(() => deletion.promise);
 let renderer: ReactTestRenderer | undefined;
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useAlert: () => ({
     alert: {
       confirm: mockAlertConfirm,

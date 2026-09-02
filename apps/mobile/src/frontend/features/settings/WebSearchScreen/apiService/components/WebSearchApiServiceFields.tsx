@@ -1,4 +1,4 @@
-import { Section } from '@cherrystudio/ui/components';
+import { Section } from '@cherrystudio/ui-native/components';
 import { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 

@@ -1,4 +1,4 @@
-import { resolveProviderIcon } from '@cherrystudio/ui/icons';
+import { resolveProviderIcon } from '@cherrystudio/ui-native/icons';
 
 import type { WebSearchProviderId } from '@/shared/data/types/webSearch';
 

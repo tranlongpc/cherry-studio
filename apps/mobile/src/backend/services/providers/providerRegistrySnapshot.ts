@@ -2,7 +2,7 @@ import {
   type CatalogManifest,
   CatalogManifestSchema,
   type RemoteRegistryFileName,
-} from '@cherrystudio/provider-registry/mobile';
+} from '@cherrystudio/mobile-provider-registry/mobile';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as z from 'zod';
 

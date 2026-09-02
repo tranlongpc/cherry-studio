@@ -1,5 +1,5 @@
 import { formatApiHost, withoutTrailingApiVersion } from '@cherrystudio/ai-runtime/provider';
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import type { AgentOptions } from '@earendil-works/pi-agent-core/agent';
 import type { FetchFunction } from '@earendil-works/pi-ai';
 

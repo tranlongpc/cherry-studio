@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE, MODALITY, MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE, MODALITY, MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 
 import { createUniqueModelId, type Model } from '@/shared/data/types/model';
 import type { Provider } from '@/shared/data/types/provider';

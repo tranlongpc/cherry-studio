@@ -369,7 +369,7 @@ They never cross the JSON-safe application protocol.
 A callback may close over a narrow application capability service. This is how Streamable HTTP MCP,
 device capabilities, web access, image generation, and managed-file operations reach Pi without Pi
 importing application or provider SDK modules. Image generation may use `AiService`,
-`@cherrystudio/ai-core`, or AI SDK behind that callback; those dependencies still do not own the
+`@cherrystudio/mobile-ai-core`, or AI SDK behind that callback; those dependencies still do not own the
 conversation or tool loop. The current inventory lives in
 [Agent Tools And Controlled Resources](./agent-tools-and-resources.md).
 

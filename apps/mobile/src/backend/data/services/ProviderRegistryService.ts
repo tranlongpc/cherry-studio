@@ -10,7 +10,7 @@ import type {
   ReasoningEffort,
   ReasoningFormatType,
   ReasoningWireProfile,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import {
   deriveLegacyReasoningFields,
   ENDPOINT_TYPE,
@@ -20,13 +20,13 @@ import {
   MODEL_CAPABILITY,
   REASONING_EFFORT,
   REASONING_FORMAT_PROFILES,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import {
   getMobileRegistryLoader,
   type MobileRemoteRegistrySnapshot,
   type MobileRegistryLoader,
   type RemoteRegistryFileName,
-} from '@cherrystudio/provider-registry/mobile';
+} from '@cherrystudio/mobile-provider-registry/mobile';
 
 import { createUniqueModelId, type Model } from '@/shared/data/types/model';
 import type {

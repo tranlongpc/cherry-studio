@@ -12,7 +12,7 @@ import {
   type ImageGenerationMode,
   type ImageGenerationSupport,
   type ParamValues,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import type { GenerateImageOutput } from '@cherrystudio/universal/ai/builtinTools';
 
 import type { AiService } from '@/backend/ai/AiService';

@@ -1,5 +1,5 @@
-import { Image } from '@cherrystudio/ui/components';
-import { resolveProviderIcon } from '@cherrystudio/ui/icons';
+import { Image } from '@cherrystudio/ui-native/components';
+import { resolveProviderIcon } from '@cherrystudio/ui-native/icons';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';

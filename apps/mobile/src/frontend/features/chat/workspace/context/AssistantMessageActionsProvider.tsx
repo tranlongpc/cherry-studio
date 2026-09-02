@@ -1,4 +1,4 @@
-import { useAlert } from '@cherrystudio/ui/components';
+import { useAlert } from '@cherrystudio/ui-native/components';
 import * as Clipboard from 'expo-clipboard';
 import {
   createContext,

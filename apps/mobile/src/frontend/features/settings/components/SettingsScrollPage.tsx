@@ -1,4 +1,4 @@
-import { cn } from '@cherrystudio/ui/utils';
+import { cn } from '@cherrystudio/ui-native/utils';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { ScrollView, type ScrollViewProps } from 'react-native';
 

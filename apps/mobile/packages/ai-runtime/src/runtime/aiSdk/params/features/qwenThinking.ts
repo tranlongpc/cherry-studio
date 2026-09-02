@@ -1,5 +1,5 @@
-import { definePlugin } from '@cherrystudio/ai-core';
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { definePlugin } from '@cherrystudio/mobile-ai-core';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import type { Model } from '@cherrystudio/universal/data/types/model';
 import type { Provider } from '@cherrystudio/universal/data/types/provider';
 import {

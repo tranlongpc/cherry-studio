@@ -130,7 +130,7 @@ guard.
 ## Picker Sheets
 
 Short, single-level local pickers use the package-owned
-`@cherrystudio/ui/components` `BottomSheet`, a focused wrapper over
+`@cherrystudio/ui-native/components` `BottomSheet`, a focused wrapper over
 `@swmansion/react-native-bottom-sheet`'s `ModalBottomSheet`. It owns the drag handle, title,
 scrim, card geometry, safe areas, swipe/scrim dismissal, Android back, and accessibility escape.
 Feature-level picker components pass their content into this shell, while screen callers only pass

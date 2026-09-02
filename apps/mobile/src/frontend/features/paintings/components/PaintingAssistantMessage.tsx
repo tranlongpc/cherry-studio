@@ -1,6 +1,6 @@
 import CircleAlertIcon from '@cherrystudio/app-icons/icons/circle-alert';
-import { Image, ImageGenerationLoader } from '@cherrystudio/ui/components';
-import { duration, easing } from '@cherrystudio/ui/motion';
+import { Image, ImageGenerationLoader } from '@cherrystudio/ui-native/components';
+import { duration, easing } from '@cherrystudio/ui-native/motion';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';

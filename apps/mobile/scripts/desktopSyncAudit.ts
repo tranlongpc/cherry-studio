@@ -449,14 +449,30 @@ async function assertRepositoryIdentities(desktopRoot: string, mobileRoot: strin
   await Promise.all([
     assertCheckout(desktopRoot, 'CherryStudio', 'desktop'),
     assertCheckout(mobileRoot, 'cherry-studio-app', 'mobile'),
-    assertPackageName(desktopRoot, 'packages/ui', '@cherrystudio/ui'),
-    assertPackageName(mobileRoot, 'packages/ui', '@cherrystudio/ui'),
-    assertPackageName(desktopRoot, 'packages/aiCore', '@cherrystudio/ai-core'),
-    assertPackageName(mobileRoot, 'packages/ai-core', '@cherrystudio/ai-core'),
-    assertPackageName(desktopRoot, 'packages/ai-sdk-provider', '@cherrystudio/ai-sdk-provider'),
-    assertPackageName(mobileRoot, 'packages/ai-sdk-provider', '@cherrystudio/ai-sdk-provider'),
-    assertPackageName(desktopRoot, 'packages/provider-registry', '@cherrystudio/provider-registry'),
-    assertPackageName(mobileRoot, 'packages/provider-registry', '@cherrystudio/provider-registry'),
+    assertPackageName(desktopRoot, 'packages/ui', '@cherrystudio/ui-native'),
+    assertPackageName(mobileRoot, 'packages/ui', '@cherrystudio/ui-native'),
+    assertPackageName(desktopRoot, 'packages/aiCore', '@cherrystudio/mobile-ai-core'),
+    assertPackageName(mobileRoot, 'packages/ai-core', '@cherrystudio/mobile-ai-core'),
+    assertPackageName(
+      desktopRoot,
+      'packages/ai-sdk-provider',
+      '@cherrystudio/mobile-ai-sdk-provider',
+    ),
+    assertPackageName(
+      mobileRoot,
+      'packages/ai-sdk-provider',
+      '@cherrystudio/mobile-ai-sdk-provider',
+    ),
+    assertPackageName(
+      desktopRoot,
+      'packages/provider-registry',
+      '@cherrystudio/mobile-provider-registry',
+    ),
+    assertPackageName(
+      mobileRoot,
+      'packages/provider-registry',
+      '@cherrystudio/mobile-provider-registry',
+    ),
   ]);
 }
 

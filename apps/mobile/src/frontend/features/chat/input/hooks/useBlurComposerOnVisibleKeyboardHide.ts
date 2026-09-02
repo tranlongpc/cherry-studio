@@ -1,4 +1,4 @@
-import type { ComposerInputHandle } from '@cherrystudio/ui/components';
+import type { ComposerInputHandle } from '@cherrystudio/ui-native/components';
 import { type RefObject, useEffect } from 'react';
 import { KeyboardController, KeyboardEvents } from 'react-native-keyboard-controller';
 

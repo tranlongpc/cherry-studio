@@ -2,7 +2,7 @@ import {
   composerContentGap,
   ContentState,
   getComposerKeyboardStickyOffset,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import { useIsPreview, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

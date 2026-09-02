@@ -1,4 +1,4 @@
-import { definePlugin } from '@cherrystudio/ai-core';
+import { definePlugin } from '@cherrystudio/mobile-ai-core';
 import type { LanguageModelMiddleware } from 'ai';
 
 const SKIP_THOUGHT_SIGNATURE = 'skip_thought_signature_validator';

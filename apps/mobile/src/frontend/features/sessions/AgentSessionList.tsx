@@ -1,7 +1,7 @@
 import BotIcon from '@cherrystudio/app-icons/icons/bot';
 import ChevronDownIcon from '@cherrystudio/app-icons/icons/chevron-down';
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
-import { Button, ContentState } from '@cherrystudio/ui/components';
+import { Button, ContentState } from '@cherrystudio/ui-native/components';
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

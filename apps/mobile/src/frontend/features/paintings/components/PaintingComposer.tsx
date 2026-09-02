@@ -1,4 +1,4 @@
-import { useComposerDockLayout } from '@cherrystudio/ui/components';
+import { useComposerDockLayout } from '@cherrystudio/ui-native/components';
 import * as Crypto from 'expo-crypto';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useCallback, useMemo, useState } from 'react';

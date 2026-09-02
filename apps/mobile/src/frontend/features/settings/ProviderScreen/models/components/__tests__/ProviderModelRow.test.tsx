@@ -1,4 +1,4 @@
-import { MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 import { View } from 'react-native';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 

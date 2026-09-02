@@ -28,7 +28,7 @@ import type {
 } from '@ai-sdk/provider';
 import type { FetchFunction } from '@ai-sdk/provider-utils';
 import { loadApiKey, withoutTrailingSlash } from '@ai-sdk/provider-utils';
-import { OpenAICompatibleRerankingModel } from '@cherrystudio/ai-sdk-provider';
+import { OpenAICompatibleRerankingModel } from '@cherrystudio/mobile-ai-sdk-provider';
 import { ENDPOINT_TYPE, type EndpointType } from '@cherrystudio/universal/data/types/model';
 
 import { createAihubmixImageModel } from './aihubmixImageModel';

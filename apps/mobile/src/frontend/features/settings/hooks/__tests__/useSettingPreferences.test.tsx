@@ -26,7 +26,7 @@ jest.mock('@/frontend/i18n', () => ({
   resolveLanguage: (language: string) => language,
 }));
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   useAlert: () => ({ alert: { show: mockAlertShow } }),
 }));
 

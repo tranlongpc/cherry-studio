@@ -8,8 +8,8 @@ import {
   Tabs,
   TextField,
   useAlert,
-} from '@cherrystudio/ui/components';
-import { cn } from '@cherrystudio/ui/utils';
+} from '@cherrystudio/ui-native/components';
+import { cn } from '@cherrystudio/ui-native/utils';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';

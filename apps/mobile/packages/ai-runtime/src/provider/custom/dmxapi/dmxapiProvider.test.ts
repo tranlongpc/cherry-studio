@@ -1,5 +1,5 @@
 import type { LanguageModelV3CallOptions } from '@ai-sdk/provider';
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 
 import { DmxapiExtension } from '../../extensions';
 import { createDmxapiProvider } from './dmxapiProvider';

@@ -1,4 +1,4 @@
-# @cherrystudio/ai-core
+# @cherrystudio/mobile-ai-core
 
 Cherry Studio AI Core 是一个基于 Vercel AI SDK 的统一 AI Provider 接口包，为 AI 应用提供强大的抽象层和插件化架构。
 
@@ -71,7 +71,7 @@ Cherry Studio AI Core 是一个基于 Vercel AI SDK 的统一 AI Provider 接口
 ## 安装
 
 ```bash
-npm install @cherrystudio/ai-core ai @ai-sdk/google @ai-sdk/openai
+npm install @cherrystudio/mobile-ai-core ai @ai-sdk/google @ai-sdk/openai
 ```
 
 ### React Native
@@ -84,7 +84,7 @@ const { getDefaultConfig } = require('expo/metro-config')
 
 const config = getDefaultConfig(__dirname)
 
-// 添加对 @cherrystudio/ai-core 的支持
+// 添加对 @cherrystudio/mobile-ai-core 的支持
 config.resolver.resolverMainFields = ['react-native', 'browser', 'main']
 config.resolver.platforms = ['ios', 'android', 'native', 'web']
 
@@ -102,7 +102,7 @@ npm install @ai-sdk/openai @ai-sdk/anthropic @ai-sdk/google
 ### 基础用法
 
 ```typescript
-import { AiCore } from '@cherrystudio/ai-core'
+import { AiCore } from '@cherrystudio/mobile-ai-core'
 
 // 创建 OpenAI executor
 const executor = AiCore.create('openai', {
@@ -123,7 +123,7 @@ const response = await executor.generateText('gpt-4', {
 ### 便捷函数
 
 ```typescript
-import { createOpenAIExecutor } from '@cherrystudio/ai-core'
+import { createOpenAIExecutor } from '@cherrystudio/mobile-ai-core'
 
 // 快速创建 OpenAI executor
 const executor = createOpenAIExecutor({
@@ -139,7 +139,7 @@ const result = await executor.streamText('gpt-4', {
 ### 多 Provider 支持
 
 ```typescript
-import { AiCore } from '@cherrystudio/ai-core'
+import { AiCore } from '@cherrystudio/mobile-ai-core'
 
 // 支持多种 AI providers
 const openaiExecutor = AiCore.create('openai', { apiKey: 'openai-key' })
@@ -153,7 +153,7 @@ const xaiExecutor = AiCore.create('xai', { apiKey: 'xai-key' })
 对于非内置的 providers，可以通过注册 API 扩展支持：
 
 ```typescript
-import { registerProvider, AiCore } from '@cherrystudio/ai-core'
+import { registerProvider, AiCore } from '@cherrystudio/mobile-ai-core'
 
 // 方式一：导入并注册第三方 provider
 import { createGroq } from '@ai-sdk/groq'
@@ -190,7 +190,7 @@ AI Core 提供了强大的插件系统，支持请求全生命周期的扩展。
 为不同 AI Provider 提供统一的网络搜索能力：
 
 ```typescript
-import { webSearchPlugin } from '@cherrystudio/ai-core/built-in/plugins'
+import { webSearchPlugin } from '@cherrystudio/mobile-ai-core/built-in/plugins'
 
 const executor = AiCore.create('openai', { apiKey: 'your-key' }, [
   webSearchPlugin({
@@ -216,7 +216,7 @@ const executor = AiCore.create('openai', { apiKey: 'your-key' }, [
 提供详细的请求日志记录：
 
 ```typescript
-import { createLoggingPlugin } from '@cherrystudio/ai-core/built-in/plugins'
+import { createLoggingPlugin } from '@cherrystudio/mobile-ai-core/built-in/plugins'
 
 const executor = AiCore.create('openai', { apiKey: 'your-key' }, [
   createLoggingPlugin({
@@ -232,7 +232,7 @@ const executor = AiCore.create('openai', { apiKey: 'your-key' }, [
 创建自定义插件非常简单：
 
 ```typescript
-import { definePlugin } from '@cherrystudio/ai-core'
+import { definePlugin } from '@cherrystudio/mobile-ai-core'
 
 const customPlugin = definePlugin({
   name: 'custom-plugin',
@@ -281,7 +281,7 @@ const executor = AiCore.create('openai', { apiKey: 'your-key' }, [customPlugin])
 #### 基本用法示例
 
 ```typescript
-import { createClient } from '@cherrystudio/ai-core'
+import { createClient } from '@cherrystudio/mobile-ai-core'
 import { createProviderRegistry } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
@@ -332,7 +332,7 @@ await client.streamObject({
 更强大的是，你还可以将自定义注册表与 Cherry Studio 的插件系统结合使用：
 
 ```typescript
-import { PluginEnabledAiClient } from '@cherrystudio/ai-core'
+import { PluginEnabledAiClient } from '@cherrystudio/mobile-ai-core'
 import { createProviderRegistry } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'

@@ -22,7 +22,7 @@ import { OpenAICompatibleImageModel } from '@ai-sdk/openai-compatible';
 import type { ImageModelV3, ImageModelV3CallOptions, JSONValue } from '@ai-sdk/provider';
 import type { FetchFunction } from '@ai-sdk/provider-utils';
 import { withoutTrailingSlash } from '@ai-sdk/provider-utils';
-import { IMAGE_PARAM_CATALOG_KEYS, wireName } from '@cherrystudio/provider-registry';
+import { IMAGE_PARAM_CATALOG_KEYS, wireName } from '@cherrystudio/mobile-provider-registry';
 import { createPaintingGenerateError } from '@cherrystudio/universal/ai/paintingGenerateError';
 import type { CanonicalParamKey } from '@cherrystudio/universal/data/types/model';
 import * as z from 'zod';

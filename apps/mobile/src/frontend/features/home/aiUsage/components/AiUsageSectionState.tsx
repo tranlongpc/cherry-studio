@@ -1,5 +1,5 @@
 import RefreshCwIcon from '@cherrystudio/app-icons/icons/refresh-cw';
-import { Button, ContentState, Spinner } from '@cherrystudio/ui/components';
+import { Button, ContentState, Spinner } from '@cherrystudio/ui-native/components';
 import { useTranslation } from 'react-i18next';
 
 type AiUsageSectionStatusProps = {

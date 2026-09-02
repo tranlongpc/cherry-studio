@@ -5,7 +5,7 @@ import {
   TextField,
   useAlert,
   useToast,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';

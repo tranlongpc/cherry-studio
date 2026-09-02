@@ -4,7 +4,7 @@
  * `AppProviderSettingsMap`, and `appProviderIds` lookup.
  */
 
-import type { RuntimeConfig } from '@cherrystudio/ai-core/core';
+import type { RuntimeConfig } from '@cherrystudio/mobile-ai-core/core';
 import type {
   ExtensionConfigToIdResolutionMap,
   ExtensionToSettingsMap,
@@ -12,8 +12,8 @@ import type {
   ProviderExtensionConfig,
   StringKeys,
   UnionToIntersection,
-} from '@cherrystudio/ai-core/provider';
-import { coreExtensions } from '@cherrystudio/ai-core/provider';
+} from '@cherrystudio/mobile-ai-core/provider';
+import { coreExtensions } from '@cherrystudio/mobile-ai-core/provider';
 
 import { extensions } from '../provider/extensions';
 

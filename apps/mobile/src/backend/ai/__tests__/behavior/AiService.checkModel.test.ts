@@ -1,5 +1,5 @@
 import type { LanguageModelV3CallOptions } from '@ai-sdk/provider';
-import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 import { MockLanguageModelV3 } from 'ai/test';
 import * as Crypto from 'expo-crypto';
 

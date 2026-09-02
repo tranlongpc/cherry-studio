@@ -10,7 +10,7 @@ import type {
   ReasoningWireMode,
   ReasoningWireProfile,
   ReasoningWireTarget,
-} from '@cherrystudio/provider-registry';
+} from '@cherrystudio/mobile-provider-registry';
 import { nearestThinkingOption, resolveBudgetTokens } from '@cherrystudio/universal/ai/reasoning';
 import type { Model } from '@cherrystudio/universal/data/types/model';
 import type { ReasoningEffortOption } from '@cherrystudio/universal/types/aiSdk';

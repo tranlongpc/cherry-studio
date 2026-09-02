@@ -6,7 +6,7 @@
  *  - `@shared/utils/model` — vendor check functions (`isAnthropicModel`
  *    etc.) and capability inference (e.g. deciding which IDs to mark
  *    `REASONING` in the schema).
- *  - `@cherrystudio/ui` icon registry — vendor-level icon routing for
+ *  - `@cherrystudio/ui-native` icon registry — vendor-level icon routing for
  *    models whose ID doesn't have a dedicated SKU icon.
  *  - Future callers doing vendor dispatch.
  *

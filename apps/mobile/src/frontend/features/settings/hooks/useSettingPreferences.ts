@@ -1,4 +1,4 @@
-import { useAlert } from '@cherrystudio/ui/components';
+import { useAlert } from '@cherrystudio/ui-native/components';
 import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { withThemeTransition } from 'react-native-nitro-theme-transition';

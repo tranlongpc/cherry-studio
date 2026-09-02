@@ -1,4 +1,4 @@
-import { extensionRegistry, type ToolCapability } from '@cherrystudio/ai-core/provider';
+import { extensionRegistry, type ToolCapability } from '@cherrystudio/mobile-ai-core/provider';
 import { describe, expect, it } from 'vitest';
 
 import { extensions } from '../extensions';

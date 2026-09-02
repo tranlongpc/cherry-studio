@@ -5,7 +5,7 @@ import HeartPulseIcon from '@cherrystudio/app-icons/icons/heart-pulse';
 import ImageIcon from '@cherrystudio/app-icons/icons/image';
 import MapPinIcon from '@cherrystudio/app-icons/icons/map-pin';
 import SearchIcon from '@cherrystudio/app-icons/icons/search';
-import { Section, Switch } from '@cherrystudio/ui/components';
+import { Section, Switch } from '@cherrystudio/ui-native/components';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, Text, View } from 'react-native';

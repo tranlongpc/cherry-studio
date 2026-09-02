@@ -7,7 +7,7 @@ const mockAvatar = jest.fn(({ children }: { children?: React.ReactNode }) => chi
 const mockAvatarFallback = jest.fn((_props: unknown) => null);
 const mockAvatarImage = jest.fn((_props: unknown) => null);
 
-jest.mock('@cherrystudio/ui/components', () => {
+jest.mock('@cherrystudio/ui-native/components', () => {
   const Avatar = Object.assign((props: { children?: React.ReactNode }) => mockAvatar(props), {
     Fallback: (props: unknown) => mockAvatarFallback(props),
     Image: (props: unknown) => mockAvatarImage(props),

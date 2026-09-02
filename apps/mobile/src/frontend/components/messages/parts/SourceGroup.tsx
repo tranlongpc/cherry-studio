@@ -1,6 +1,6 @@
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
 import GlobeIcon from '@cherrystudio/app-icons/icons/globe';
-import { MessagePart } from '@cherrystudio/ui/components';
+import { MessagePart } from '@cherrystudio/ui-native/components';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';

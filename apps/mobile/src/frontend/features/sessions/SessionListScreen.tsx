@@ -1,6 +1,6 @@
 import EllipsisIcon from '@cherrystudio/app-icons/icons/ellipsis';
 import SearchIcon from '@cherrystudio/app-icons/icons/search';
-import type { MenuItem } from '@cherrystudio/ui/components';
+import type { MenuItem } from '@cherrystudio/ui-native/components';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

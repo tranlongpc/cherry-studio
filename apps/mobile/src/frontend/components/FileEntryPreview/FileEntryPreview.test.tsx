@@ -10,7 +10,7 @@ const mockLoggerWarn = jest.fn();
 const mockSkeleton = jest.fn((_props: Record<string, unknown>) => null);
 const mockUseResolvedFile = jest.fn();
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   FilePreview: (props: Record<string, unknown>) => mockFilePreview(props),
   Skeleton: (props: Record<string, unknown>) => mockSkeleton(props),
   useAlert: () => ({ alert: { show: mockAlertShow } }),

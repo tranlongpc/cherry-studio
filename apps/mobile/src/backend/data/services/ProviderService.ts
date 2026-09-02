@@ -1,4 +1,4 @@
-import { inferAdapterFamily } from '@cherrystudio/provider-registry';
+import { inferAdapterFamily } from '@cherrystudio/mobile-provider-registry';
 import { loggerService } from '@logger';
 import { and, asc, desc, eq, gt, inArray, isNull, notInArray, or, type SQL } from 'drizzle-orm';
 import * as Crypto from 'expo-crypto';

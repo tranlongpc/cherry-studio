@@ -1,4 +1,4 @@
-import { Composer, type ComposerInputProps } from '@cherrystudio/ui/components';
+import { Composer, type ComposerInputProps } from '@cherrystudio/ui-native/components';
 import type { PasteEventPayload } from 'expo-paste-input';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

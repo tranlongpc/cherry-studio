@@ -4,7 +4,7 @@ import {
   REGISTRY_SCHEMA_VERSION,
   REMOTE_REGISTRY_FILES,
   type RemoteRegistryFileName,
-} from '@cherrystudio/provider-registry/mobile';
+} from '@cherrystudio/mobile-provider-registry/mobile';
 import { loggerService } from '@logger';
 import { getCalendars, getLocales } from 'expo-localization';
 import { Platform } from 'react-native';

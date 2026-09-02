@@ -1,4 +1,4 @@
-import type { ParamValues } from '@cherrystudio/provider-registry';
+import type { ParamValues } from '@cherrystudio/mobile-provider-registry';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 

@@ -1,4 +1,4 @@
-import { ActionMenu, type MenuItem } from '@cherrystudio/ui/components';
+import { ActionMenu, type MenuItem } from '@cherrystudio/ui-native/components';
 import * as ImagePicker from 'expo-image-picker';
 import { type ReactElement, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';

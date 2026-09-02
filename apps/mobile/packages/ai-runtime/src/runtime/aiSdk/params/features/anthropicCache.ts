@@ -13,7 +13,7 @@ import type {
   LanguageModelV3FunctionTool,
   LanguageModelV3Message,
 } from '@ai-sdk/provider';
-import { definePlugin } from '@cherrystudio/ai-core';
+import { definePlugin } from '@cherrystudio/mobile-ai-core';
 import { resolveAnthropicCacheSettings } from '@cherrystudio/universal/ai/anthropicCache';
 import type { Assistant } from '@cherrystudio/universal/data/types/assistant';
 import type { Provider } from '@cherrystudio/universal/data/types/provider';

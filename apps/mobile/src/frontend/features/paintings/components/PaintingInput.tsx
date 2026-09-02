@@ -1,6 +1,6 @@
 import Settings2Icon from '@cherrystudio/app-icons/icons/settings-2';
-import { type ImageGenerationMode, MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
-import { Composer } from '@cherrystudio/ui/components';
+import { type ImageGenerationMode, MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
+import { Composer } from '@cherrystudio/ui-native/components';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 

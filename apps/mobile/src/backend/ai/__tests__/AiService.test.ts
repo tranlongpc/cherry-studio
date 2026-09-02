@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE, MODEL_CAPABILITY } from '@cherrystudio/mobile-provider-registry';
 
 import { AiService, type AiServiceDependencies } from '@/backend/ai/AiService';
 import { createUniqueModelId, type Model, type UniqueModelId } from '@/shared/data/types/model';
@@ -7,7 +7,7 @@ import type { AuthConfig, Provider } from '@/shared/data/types/provider';
 const mockGenerate = jest.fn(async () => ({ text: 'ok', usage: undefined }));
 const mockGeneratorConstructor = jest.fn();
 
-jest.mock('@cherrystudio/ai-core', () => ({
+jest.mock('@cherrystudio/mobile-ai-core', () => ({
   definePlugin: jest.fn((plugin) => plugin),
   generateImage: jest.fn(),
 }));

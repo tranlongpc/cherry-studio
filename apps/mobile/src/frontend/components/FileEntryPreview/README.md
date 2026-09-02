@@ -32,7 +32,7 @@ stand in for whatever that format actually needs.
 
    ```tsx
    // plugins/WordPreview.tsx
-   import type { FilePreviewComponentProps } from '@cherrystudio/ui/components';
+   import type { FilePreviewComponentProps } from '@cherrystudio/ui-native/components';
 
    import { FileEntrySkeleton } from '../FileEntrySkeleton';
 

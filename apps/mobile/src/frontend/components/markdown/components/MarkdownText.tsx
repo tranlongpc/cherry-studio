@@ -1,5 +1,5 @@
-import { MarkdownText as CherryMarkdownText } from '@cherrystudio/ui/components';
-import { normalizeFontSizeStep } from '@cherrystudio/ui/utils';
+import { MarkdownText as CherryMarkdownText } from '@cherrystudio/ui-native/components';
+import { normalizeFontSizeStep } from '@cherrystudio/ui-native/utils';
 
 import { usePreference } from '@/frontend/data/hooks';
 import { openExternalUrl } from '@/frontend/utils/openExternalUrl';

@@ -1,4 +1,4 @@
-import type { ProtoProviderConfig } from '@cherrystudio/provider-registry';
+import type { ProtoProviderConfig } from '@cherrystudio/mobile-provider-registry';
 
 import {
   createPresetProviderInput,

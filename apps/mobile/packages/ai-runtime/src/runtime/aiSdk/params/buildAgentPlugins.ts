@@ -1,7 +1,7 @@
-import type { AiPlugin } from '@cherrystudio/ai-core';
-import type { WebSearchPluginConfig } from '@cherrystudio/ai-core/built-in/plugins';
-import { providerToolPlugin } from '@cherrystudio/ai-core/built-in/plugins';
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import type { AiPlugin } from '@cherrystudio/mobile-ai-core';
+import type { WebSearchPluginConfig } from '@cherrystudio/mobile-ai-core/built-in/plugins';
+import { providerToolPlugin } from '@cherrystudio/mobile-ai-core/built-in/plugins';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 import { resolveAnthropicCacheSettings } from '@cherrystudio/universal/ai/anthropicCache';
 import type { Assistant } from '@cherrystudio/universal/data/types/assistant';
 import type { EndpointType, Model } from '@cherrystudio/universal/data/types/model';

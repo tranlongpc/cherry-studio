@@ -1,4 +1,4 @@
-import type { ImageGenerationMode, ParamValues } from '@cherrystudio/provider-registry';
+import type { ImageGenerationMode, ParamValues } from '@cherrystudio/mobile-provider-registry';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 

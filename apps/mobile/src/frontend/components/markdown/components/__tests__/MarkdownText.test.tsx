@@ -6,7 +6,7 @@ const mockCherryMarkdownText = jest.fn((_props: Record<string, unknown>) => null
 const mockOpenExternalUrl = jest.fn();
 let mockStoredFontSizeStep = 1;
 
-jest.mock('@cherrystudio/ui/components', () => ({
+jest.mock('@cherrystudio/ui-native/components', () => ({
   MarkdownText: (props: Record<string, unknown>) => mockCherryMarkdownText(props),
 }));
 jest.mock('heroui-native/utils', () => ({

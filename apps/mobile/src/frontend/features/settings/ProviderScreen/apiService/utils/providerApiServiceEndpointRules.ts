@@ -1,4 +1,4 @@
-import { ENDPOINT_TYPE } from '@cherrystudio/provider-registry';
+import { ENDPOINT_TYPE } from '@cherrystudio/mobile-provider-registry';
 
 import type { EndpointType } from '@/shared/data/types/model';
 import type { AuthType, EndpointConfigs, Provider } from '@/shared/data/types/provider';

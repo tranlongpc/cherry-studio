@@ -8,7 +8,7 @@ components and the mobile WebP runtime for the desktop UI icon set.
 Runtime imports use the component-only entry point so Metro does not traverse the icon registries:
 
 ```tsx
-import { Button } from '@cherrystudio/ui/components';
+import { Button } from '@cherrystudio/ui-native/components';
 import PlusIcon from '@cherrystudio/app-icons/icons/plus';
 
 <Button icon={<PlusIcon />} loading={isSaving} onPress={save} size="lg" variant="default">
@@ -89,7 +89,7 @@ scroll-cancellation contract in
 [Interaction And Gesture Arbitration](../../docs/references/interaction-and-gesture-arbitration.md)
 and verify the native interaction boundary on each supported platform.
 
-Typography utilities are exported from `@cherrystudio/ui/utils`: `normalizeFontSizeStep`,
+Typography utilities are exported from `@cherrystudio/ui-native/utils`: `normalizeFontSizeStep`,
 `resolveTypographyScale`, and `createTypographyCSSVariables` keep native style objects, runtime CSS
 variables, MessageList geometry, and settings previews on the same three-step scale.
 
@@ -208,7 +208,7 @@ contrast. Selected chips strengthen the neutral background and border without in
 accent color. The semantic tokens adapt this hierarchy to light and dark themes.
 
 ```tsx
-import { Chip } from '@cherrystudio/ui/components';
+import { Chip } from '@cherrystudio/ui-native/components';
 
 <Chip.Removable
   onRemove={removeSearch}
@@ -254,7 +254,7 @@ the longest phrase, so surrounding content does not move between changes. Use th
 share timing across animated values, or use the variant by itself:
 
 ```tsx
-import { TextAnimation } from '@cherrystudio/ui/components';
+import { TextAnimation } from '@cherrystudio/ui-native/components';
 import { Text } from 'react-native';
 
 <TextAnimation duration={2200}>
@@ -275,7 +275,7 @@ whether that value is revealed and where blurred content is displayed, and rende
 action inside the field. Callers must provide localized action labels:
 
 ```tsx
-import { Input } from '@cherrystudio/ui/components';
+import { Input } from '@cherrystudio/ui-native/components';
 
 <Input
   accessibilityLabel={t('settings.provider.apiService.apiKey')}
@@ -309,7 +309,7 @@ import {
   ContextMenu,
   ContextMenuScrollBoundary,
   type MenuItem,
-} from '@cherrystudio/ui/components';
+} from '@cherrystudio/ui-native/components';
 
 const items = [
   { id: 'rename', label: 'Rename', onPress: rename },
@@ -372,7 +372,7 @@ and carries no i18n, attachment handling, or picking logic, so the same componen
 screen, an image prompt, or a story.
 
 ```tsx
-import { Composer } from '@cherrystudio/ui/components';
+import { Composer } from '@cherrystudio/ui-native/components';
 
 <Composer
   labels={{ send: t('chat.input.action.sendMessage') }}
@@ -458,10 +458,10 @@ callers that need most of the screen must bound their children to the window.
 
 ## Motion
 
-Curves and durations are two axes, exported separately from `@cherrystudio/ui/motion`:
+Curves and durations are two axes, exported separately from `@cherrystudio/ui-native/motion`:
 
 ```tsx
-import { duration, easing } from '@cherrystudio/ui/motion';
+import { duration, easing } from '@cherrystudio/ui-native/motion';
 
 translateX.set(withTiming(next, { duration: duration.base, easing: easing.settle }));
 ```
@@ -480,14 +480,14 @@ tokens. This workspace does so in `src/frontend/styles/global.css`.
 
 ## Background Activities
 
-`@cherrystudio/ui/background-activity` exposes the platform-neutral presentation model and a
+`@cherrystudio/ui-native/background-activity` exposes the platform-neutral presentation model and a
 registered icon union. Callers supply title, detail, compact label, optional preview, timing, and
 one registered icon. They cannot supply children, render functions, arbitrary components, colors,
 spacing, typography, or layout overrides. Feature services keep their phase and state machines and
 map those values into this presentation model. `BackgroundActivityNativePresentation` adds the
 theme and staged-logo fields used only by the host presenter; feature contracts do not expose them.
 
-`@cherrystudio/ui/background-activity/ios` exposes the serializable `expo-widgets` renderer. It owns
+`@cherrystudio/ui-native/background-activity/ios` exposes the serializable `expo-widgets` renderer. It owns
 the Lock Screen and Dynamic Island layouts, colors, type, spacing, truncation, compact timer/status, logo
 placement, and SF Symbol mapping. Feature activity files only register that renderer under their
 typed activity name. Infrastructure injects the resolved theme and staged logo and stamps terminal
@@ -533,7 +533,7 @@ packages/ui/src/icons-webp/**/index.ts
 ```
 
 The source SVGs under `packages/ui/icons` are conversion inputs only. Runtime
-imports should come from the format-neutral `@cherrystudio/ui/icons` exports,
+imports should come from the format-neutral `@cherrystudio/ui-native/icons` exports,
 not from the source SVG or generated WebP directories.
 
 Do not edit generated icons directly. Update the SVG source or the generator,
@@ -571,7 +571,7 @@ theme foreground WebP pairs.
 Icons use static source pairs:
 
 ```ts
-import { resolveIcon, resolveProviderIcon } from '@cherrystudio/ui/icons';
+import { resolveIcon, resolveProviderIcon } from '@cherrystudio/ui-native/icons';
 
 const icon = resolveIcon(modelId, providerId) ?? resolveProviderIcon(providerId);
 const source = icon?.[theme];
@@ -595,7 +595,7 @@ alias and extend `packages/ui/src/icons-webp/__tests__/providers.test.ts`.
 
 ## App Wiring
 
-The app resolves `@cherrystudio/ui` through the workspace package and tsconfig
+The app resolves `@cherrystudio/ui-native` through the workspace package and tsconfig
 paths.
 
 Generated icon directories are excluded from lint and format checks in

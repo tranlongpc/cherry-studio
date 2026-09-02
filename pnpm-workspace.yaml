@@ -1,5 +1,7 @@
 packages:
   - 'packages/*'
+  - 'apps/mobile'
+  - 'apps/mobile/packages/*'
 
 overrides:
   picomatch: '4.0.4'
@@ -104,6 +106,7 @@ allowBuilds:
   '@j178/prek': true
   '@paymoapp/electron-shutdown-handler': true
   '@scarf/scarf': true
+  '@shopify/react-native-skia': set this to true or false
   '@swc/core': true
   better-sqlite3: true
   canvas: false
@@ -117,6 +120,7 @@ allowBuilds:
   node-pty: true
   onnxruntime-node: true
   protobufjs: true
+  react-native-enriched-markdown: set this to true or false
   registry-js: true
   selection-hook: true
   sharp: true

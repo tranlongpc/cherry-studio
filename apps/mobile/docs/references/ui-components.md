@@ -66,14 +66,14 @@ incidentally.
 
 ## Ownership
 
-`@cherrystudio/ui/components` is the public entry point for reusable, platform-neutral product
+`@cherrystudio/ui-native/components` is the public entry point for reusable, platform-neutral product
 interaction components. Its [package README](../../packages/ui/README.md) is the component API
 reference and the authority on what the package currently provides.
 
 Runtime component imports use that entry point so Metro does not traverse icon registries:
 
 ```tsx
-import { Button, Section, TextField } from '@cherrystudio/ui/components';
+import { Button, Section, TextField } from '@cherrystudio/ui-native/components';
 ```
 
 `@cherrystudio/app-icons` owns the Lucide SVG/Uniwind adapter. Runtime icons use default deep
@@ -93,7 +93,7 @@ CherryUI wrapper becomes the public surface once the app standardizes behavior a
 dependency.
 
 App-level singleton surfaces are owned by CherryUI, mounted once at the app root, and reached
-through one hook or component from `@cherrystudio/ui/components`. Toast, portal host, and global
+through one hook or component from `@cherrystudio/ui-native/components`. Toast, portal host, and global
 alert are singletons. Feature code does not import a third-party toast or dialog hook directly and
 does not mount a second host for the same surface.
 

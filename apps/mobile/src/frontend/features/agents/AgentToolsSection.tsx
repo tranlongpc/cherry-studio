@@ -2,7 +2,7 @@ import MonitorCloudIcon from '@cherrystudio/app-icons/icons/monitor-cloud';
 import RotateCcwIcon from '@cherrystudio/app-icons/icons/rotate-ccw';
 import TrashIcon from '@cherrystudio/app-icons/icons/trash-2';
 import WrenchIcon from '@cherrystudio/app-icons/icons/wrench';
-import { Button, Section, Switch } from '@cherrystudio/ui/components';
+import { Button, Section, Switch } from '@cherrystudio/ui-native/components';
 import { useQueries } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
