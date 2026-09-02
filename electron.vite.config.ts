@@ -99,7 +99,9 @@ export default defineConfig({
           warn(warning)
         }
       },
-      sourcemap: isDev
+      // 'hidden' in production: emit .map for symbolicating release crash reports without
+      // shipping it — electron-builder's `files` filter drops **/*.map from the package.
+      sourcemap: isDev ? true : 'hidden'
     },
     esbuild: isProd ? { legalComments: 'none' } : {},
     optimizeDeps: {
@@ -118,7 +120,7 @@ export default defineConfig({
       }
     },
     build: {
-      sourcemap: isDev,
+      sourcemap: isDev ? true : 'hidden',
       rollupOptions: {
         // Unlike renderer which auto-discovers entries from HTML files,
         // preload requires explicit entry point configuration for multiple scripts
